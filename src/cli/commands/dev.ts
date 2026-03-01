@@ -5,7 +5,7 @@
  */
 
 import { createServer, type ServerInstance } from '../../backend/server.js';
-import { loadConfig, toLLMConfig } from '../../config/loader.js';
+import { loadConfig, toLLMConfig, toPlannerLLMConfig } from '../../config/loader.js';
 import * as output from '../utils/output.js';
 
 export interface DevOptions {
@@ -127,6 +127,11 @@ export async function devCommand(options: DevOptions): Promise<void> {
       if (llmConfig) {
         serverConfig.defaultModelConfig = llmConfig;
       }
+    }
+
+    const plannerLlmConfig = toPlannerLLMConfig(agentConfig);
+    if (plannerLlmConfig) {
+      serverConfig.planner = { llm: plannerLlmConfig };
     }
 
     // Agent config

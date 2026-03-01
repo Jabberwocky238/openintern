@@ -30,7 +30,14 @@ import type { EmbeddingConfig } from '../types/embedding.js';
 import { logger } from '../utils/logger.js';
 import type { ErrorResponse } from '../types/api.js';
 import { createEmbeddingProvider } from './store/embedding-provider.js';
-import { CheckpointService, createRuntimeExecutor, EventService, MemoryService, RunRepository } from './runtime/index.js';
+import {
+  CheckpointService,
+  createRuntimeExecutor,
+  EventService,
+  MemoryService,
+  PlanRepository,
+  RunRepository,
+} from './runtime/index.js';
 import { RoleRepository } from './runtime/role-repository.js';
 import { GroupRepository } from './runtime/group-repository.js';
 import { SkillRepository } from './runtime/skill/repository.js';
@@ -51,6 +58,9 @@ export interface ServerConfig {
   baseDir: string;
   corsOrigins: string | string[];
   defaultModelConfig?: LLMConfig;
+  planner?: {
+    llm?: LLMConfig;
+  };
   maxSteps?: number;
   persistLlmTokens?: boolean;
   workDir?: string;
@@ -115,6 +125,7 @@ export function createApp(config: Partial<ServerConfig> = {}): {
   );
   const dbReady = runPostgresMigrations(pool);
   const runRepository = new RunRepository(pool);
+  const planRepository = new PlanRepository(pool);
   const roleRepository = new RoleRepository(pool);
   const groupRepository = new GroupRepository(pool);
   const skillRepository = new SkillRepository(pool);
@@ -199,6 +210,7 @@ export function createApp(config: Partial<ServerConfig> = {}): {
   // Set up runtime executor for the run queue
   const runtimeExecutor = createRuntimeExecutor({
     runRepository,
+    planRepository,
     eventService,
     checkpointService,
     memoryService,
@@ -215,6 +227,7 @@ export function createApp(config: Partial<ServerConfig> = {}): {
       temperature: 0.7,
       maxTokens: 2000,
     },
+    ...(finalConfig.planner?.llm ? { plannerModelConfig: finalConfig.planner.llm } : {}),
     persistLlmTokens: finalConfig.persistLlmTokens ?? false,
     workDir: finalConfig.workDir ?? `${finalConfig.baseDir}/workspace`,
     ...(finalConfig.mcp ? { mcp: finalConfig.mcp } : {}),

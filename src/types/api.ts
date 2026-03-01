@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RunMetaSchema, RunStatusSchema } from './run.js';
+import { RunMetaSchema, RunStatusSchema, RunModeSchema } from './run.js';
 import { EventSchema } from './events.js';
 import { AttachmentReferenceSchema } from './upload.js';
 
@@ -26,6 +26,7 @@ export const CreateRunRequestSchema = z.object({
   session_key: z.string().regex(/^s_[a-zA-Z0-9_]+$/).optional(),
   input: z.string().min(1),
   agent_id: z.string().min(1).optional(),
+  run_mode: RunModeSchema.optional(),
   llm_config: LLMConfigRequestSchema,
   attachments: z.array(AttachmentReferenceSchema).max(5).optional(),
 });
@@ -90,6 +91,7 @@ export const QueuedRunSchema = z.object({
   session_key: z.string().regex(/^s_[a-zA-Z0-9_]+$/),
   input: z.string(),
   agent_id: z.string(),
+  run_mode: RunModeSchema.optional(),
   created_at: z.string().datetime(),
   status: z.enum(['pending', 'running', 'waiting', 'suspended', 'completed', 'failed', 'cancelled']),
   llm_config: LLMConfigRequestSchema,

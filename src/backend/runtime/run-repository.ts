@@ -3,7 +3,15 @@ import type { LLMConfigRequest } from '../../types/api.js';
 import type { RunMeta } from '../../types/run.js';
 import { NotFoundError } from '../../utils/errors.js';
 import type { Event } from '../../types/events.js';
-import type { DelegatedPermissions, EventCursorPage, RunCreateInput, RunDependency, RunRecord, RunStatus } from './models.js';
+import type {
+  DelegatedPermissions,
+  EventCursorPage,
+  RunCreateInput,
+  RunDependency,
+  RunMode,
+  RunRecord,
+  RunStatus,
+} from './models.js';
 import { appendScopePredicate, type ScopeContext } from './scope.js';
 
 interface RunRow {
@@ -15,6 +23,7 @@ interface RunRow {
   session_key: string;
   input: string;
   status: RunStatus;
+  run_mode: RunMode | null;
   agent_id: string;
   llm_config: LLMConfigRequest | null;
   result: Record<string, unknown> | null;
@@ -83,6 +92,16 @@ function toIso(value: string | Date | null): string | null {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
+function resolveRunMode(mode: RunMode | null, groupId: string | null): RunMode {
+  if (mode) {
+    return mode;
+  }
+  if (groupId) {
+    return 'group';
+  }
+  return 'single';
+}
+
 function mapRunRow(row: RunRow): RunRecord {
   return {
     id: row.id,
@@ -93,6 +112,7 @@ function mapRunRow(row: RunRow): RunRecord {
     sessionKey: row.session_key,
     input: row.input,
     status: row.status,
+    runMode: resolveRunMode(row.run_mode, row.group_id),
     agentId: row.agent_id,
     llmConfig: row.llm_config,
     result: row.result,
@@ -137,6 +157,7 @@ export class RunRepository {
   constructor(private readonly pool: Pool) {}
 
   async createRun(input: RunCreateInput): Promise<RunRecord> {
+    const runMode = input.runMode ?? (input.groupId ? 'group' : 'single');
     const result = await this.pool.query<RunRow>(
       `INSERT INTO runs (
         id,
@@ -147,11 +168,12 @@ export class RunRepository {
         session_key,
         input,
         status,
+        run_mode,
         agent_id,
         llm_config,
         parent_run_id,
         delegated_permissions
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11::jsonb)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12::jsonb)
       RETURNING *`,
       [
         input.id,
@@ -161,6 +183,7 @@ export class RunRepository {
         input.groupId ?? null,
         input.sessionKey,
         input.input,
+        runMode,
         input.agentId,
         input.llmConfig,
         input.parentRunId ?? null,
@@ -354,6 +377,7 @@ export class RunRepository {
       run_id: row.id,
       session_key: row.session_key,
       status: row.status,
+      run_mode: resolveRunMode(row.run_mode, row.group_id),
       started_at: started,
       ended_at: ended,
       duration_ms: durationMs,

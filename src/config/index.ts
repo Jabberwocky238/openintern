@@ -1,2 +1,2 @@
-export { loadConfig, clearConfigCache, toLLMConfig } from './loader.js';
+export { loadConfig, clearConfigCache, toLLMConfig, toPlannerLLMConfig } from './loader.js';
 export type { AgentConfig } from '../types/agent.js';
