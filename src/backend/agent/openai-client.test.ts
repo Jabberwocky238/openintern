@@ -114,7 +114,11 @@ describe('OpenAIClient', () => {
 
       const messages: Message[] = [
         { role: 'user', content: 'Do something' },
-        { role: 'assistant', content: 'Calling tool' },
+        {
+          role: 'assistant',
+          content: 'Calling tool',
+          toolCalls: [{ id: 'tc_123', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
         { role: 'tool', content: '{"result": "ok"}', toolCallId: 'tc_123' },
       ];
       await client.chat(messages);
@@ -165,6 +169,33 @@ describe('OpenAIClient', () => {
         name: 'get_weather',
         parameters: { city: 'Beijing' },
       });
+    });
+
+    it('should parse minimax invoke markup when tool_calls is missing', async () => {
+      const invokeMarkup = String.raw`(tool call)
+<invoke name=\read_file\>
+<parameter name=\path\>docs/文献列表/cases/recv8fLSO2IZxq.md</parameter>
+</invoke>
+</minimax:tool_call>`;
+      const mockResponse = {
+        choices: [{
+          message: {
+            content: invokeMarkup,
+          },
+        }],
+        usage: { prompt_tokens: 18, completion_tokens: 11, total_tokens: 29 },
+      };
+      globalThis.fetch = mockFetchResponse(mockResponse);
+
+      const result = await client.chat([{ role: 'user', content: 'analyze this paper' }]);
+
+      expect(result.toolCalls).toEqual([
+        {
+          id: 'tc_invoke_1',
+          name: 'read_file',
+          parameters: { path: 'docs/文献列表/cases/recv8fLSO2IZxq.md' },
+        },
+      ]);
     });
 
     it('should handle API error', async () => {
@@ -260,6 +291,39 @@ describe('OpenAIClient', () => {
 
       expect(finalToolCalls).toEqual([
         { id: 'tc_1', name: 'get_weather', parameters: { city: 'Beijing' } },
+      ]);
+    });
+
+    it('should recover tool calls from streamed invoke markup', async () => {
+      const sseData = [
+        'data: {"choices":[{"delta":{"content":"(tool call)\\n"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"<invoke name=\\"read_file\\">\\n"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"<parameter name=\\"path\\">docs/文献列表/cases/recv8fLSO2IZxq.md</parameter>\\n"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"</invoke>\\n</minimax:tool_call>"}}]}\n\n',
+        'data: [DONE]\n\n',
+      ];
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: createSSEStream(sseData),
+      }) as typeof globalThis.fetch;
+
+      let finalToolCalls: unknown;
+      for await (const chunk of client.chatStream!(
+        [{ role: 'user', content: 'analyze this paper' }],
+      )) {
+        if (chunk.done) {
+          finalToolCalls = chunk.toolCalls;
+        }
+      }
+
+      expect(finalToolCalls).toEqual([
+        {
+          id: 'tc_invoke_1',
+          name: 'read_file',
+          parameters: { path: 'docs/文献列表/cases/recv8fLSO2IZxq.md' },
+        },
       ]);
     });
 
