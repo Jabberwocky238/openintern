@@ -182,6 +182,7 @@ export class OpenAIClient implements ILLMClient {
     const reader = body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let textBuffer = '';
     // Accumulate tool call fragments: index -> { id, name, arguments }
     const toolCallAccum = new Map<number, { id: string; name: string; arguments: string }>();
     let usage: LLMResponse['usage'] | undefined;
@@ -200,7 +201,7 @@ export class OpenAIClient implements ILLMClient {
           if (!trimmed || !trimmed.startsWith('data: ')) continue;
           const payload = trimmed.slice(6);
           if (payload === '[DONE]') {
-            yield { delta: '', done: true, usage, toolCalls: this.buildToolCalls(toolCallAccum) };
+            yield { delta: '', done: true, usage, toolCalls: this.resolveToolCalls(toolCallAccum, textBuffer) };
             return;
           }
 
@@ -231,6 +232,7 @@ export class OpenAIClient implements ILLMClient {
           // Text content delta
           const textDelta = (delta.content as string) ?? '';
           if (textDelta) {
+            textBuffer += textDelta;
             yield { delta: textDelta, done: false };
           }
 
@@ -260,7 +262,7 @@ export class OpenAIClient implements ILLMClient {
     }
 
     // If we exit without [DONE], emit final chunk
-    yield { delta: '', done: true, usage, toolCalls: this.buildToolCalls(toolCallAccum) };
+    yield { delta: '', done: true, usage, toolCalls: this.resolveToolCalls(toolCallAccum, textBuffer) };
   }
 
   private buildToolCalls(
@@ -281,6 +283,17 @@ export class OpenAIClient implements ILLMClient {
     return result.length > 0 ? result : undefined;
   }
 
+  private resolveToolCalls(
+    accum: Map<number, { id: string; name: string; arguments: string }>,
+    content: string,
+  ): ToolCall[] | undefined {
+    const toolCalls = this.buildToolCalls(accum);
+    if (toolCalls && toolCalls.length > 0) {
+      return toolCalls;
+    }
+    return this.parseInvokeToolCalls(content);
+  }
+
   private parseResponse(data: Record<string, unknown>): LLMResponse {
     const choices = data.choices as Array<Record<string, unknown>>;
     if (!choices || choices.length === 0) {
@@ -290,26 +303,7 @@ export class OpenAIClient implements ILLMClient {
     const choice = choices[0]!;
     const message = choice.message as Record<string, unknown>;
     const content = (message.content as string) ?? '';
-
-    // Parse tool calls
-    let toolCalls: ToolCall[] | undefined;
-    const rawToolCalls = message.tool_calls as Array<Record<string, unknown>> | undefined;
-    if (rawToolCalls && rawToolCalls.length > 0) {
-      toolCalls = rawToolCalls.map((tc) => {
-        const fn = tc.function as Record<string, unknown>;
-        let parameters: Record<string, unknown> = {};
-        try {
-          parameters = JSON.parse(fn.arguments as string) as Record<string, unknown>;
-        } catch {
-          // If JSON parsing fails, use empty object
-        }
-        return {
-          id: tc.id as string,
-          name: fn.name as string,
-          parameters,
-        };
-      });
-    }
+    const toolCalls = this.parseMessageToolCalls(message, content);
 
     // Parse usage
     const usage = data.usage as Record<string, number> | undefined;
@@ -325,5 +319,87 @@ export class OpenAIClient implements ILLMClient {
         totalTokens: promptTokens + completionTokens,
       },
     };
+  }
+
+  private parseMessageToolCalls(
+    message: Record<string, unknown>,
+    content: string,
+  ): ToolCall[] | undefined {
+    const rawToolCalls = message.tool_calls as Array<Record<string, unknown>> | undefined;
+    if (rawToolCalls && rawToolCalls.length > 0) {
+      return rawToolCalls.map((tc) => this.parseRawToolCall(tc));
+    }
+    return this.parseInvokeToolCalls(content);
+  }
+
+  private parseRawToolCall(tc: Record<string, unknown>): ToolCall {
+    const fn = tc.function as Record<string, unknown> | undefined;
+    let parameters: Record<string, unknown> = {};
+    if (typeof fn?.arguments === 'string') {
+      try {
+        parameters = JSON.parse(fn.arguments) as Record<string, unknown>;
+      } catch {
+        // If JSON parsing fails, use empty object
+      }
+    }
+    return {
+      id: (tc.id as string) ?? '',
+      name: (fn?.name as string) ?? '',
+      parameters,
+    };
+  }
+
+  private parseInvokeToolCalls(content: string): ToolCall[] | undefined {
+    if (!content.includes('<invoke')) {
+      return undefined;
+    }
+
+    const calls: ToolCall[] = [];
+    const invokePattern = /<invoke\b([^>]*)>([\s\S]*?)<\/invoke>/gi;
+    let match: RegExpExecArray | null = invokePattern.exec(content);
+    while (match) {
+      const name = this.parseMarkupAttribute(match[1] ?? '', 'name');
+      if (name) {
+        calls.push({
+          id: `tc_invoke_${calls.length + 1}`,
+          name,
+          parameters: this.parseInvokeParameters(match[2] ?? ''),
+        });
+      }
+      match = invokePattern.exec(content);
+    }
+
+    return calls.length > 0 ? calls : undefined;
+  }
+
+  private parseInvokeParameters(invokeContent: string): Record<string, unknown> {
+    const parameters: Record<string, unknown> = {};
+    const parameterPattern = /<parameter\b([^>]*)>([\s\S]*?)<\/parameter>/gi;
+    let match: RegExpExecArray | null = parameterPattern.exec(invokeContent);
+    while (match) {
+      const key = this.parseMarkupAttribute(match[1] ?? '', 'name');
+      if (key) {
+        parameters[key] = (match[2] ?? '').trim();
+      }
+      match = parameterPattern.exec(invokeContent);
+    }
+    return parameters;
+  }
+
+  private parseMarkupAttribute(attrs: string, attrName: string): string | undefined {
+    const escapedAttrName = attrName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(
+      `${escapedAttrName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|\\\\([^\\\\>]*)\\\\|([^\\s>]+))`,
+      'i',
+    );
+    const match = pattern.exec(attrs);
+    if (!match) {
+      return undefined;
+    }
+    const value = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
+      .trim()
+      .replace(/^\\+|\\+$/g, '')
+      .replace(/^["']|["']$/g, '');
+    return value.length > 0 ? value : undefined;
   }
 }
