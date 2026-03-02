@@ -1,0 +1,73 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: openintern-db
+    environment:
+      POSTGRES_USER: openintern
+      POSTGRES_PASSWORD: openintern
+      POSTGRES_DB: openintern
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openintern -d openintern"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: node:20-bookworm
+    container_name: openintern-backend
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgres://openintern:openintern@db:5432/openintern
+      # 可根据需要改为 openai/anthropic，并设置 API KEY
+      LLM_PROVIDER: mock
+      LLM_MODEL: mock-model
+    command: >
+      bash -lc "
+      corepack enable &&
+      pnpm config set store-dir /pnpm/store &&
+      pnpm install --frozen-lockfile &&
+      pnpm cli dev --port 3000 --no-web --no-mcp-stdio
+      "
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/workspace
+      - pnpm_store:/pnpm/store
+
+  web:
+    image: node:20-bookworm
+    container_name: openintern-web
+    working_dir: /workspace
+    depends_on:
+      - backend
+    environment:
+      # 让 Vite 代理 /api 到 backend 容器
+      VITE_API_PROXY_TARGET: http://backend:3000
+      VITE_ORG_ID: org_default
+      VITE_USER_ID: user_default
+      VITE_PROJECT_ID: project_default
+    command: >
+      bash -lc "
+      corepack enable &&
+      pnpm config set store-dir /pnpm/store &&
+      pnpm --dir web install --frozen-lockfile &&
+      pnpm --dir web dev --host 0.0.0.0 --port 5173
+      "
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./:/workspace
+      - pnpm_store:/pnpm/store
+
+volumes:
+  pg_data:
+  pnpm_store:
+
