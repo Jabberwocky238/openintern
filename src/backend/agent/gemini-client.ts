@@ -11,7 +11,12 @@ import type {
 } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
 import { LLMError } from '../../utils/errors.js';
-import type { ILLMClient, LLMCallOptions, LLMStreamChunk } from './llm-client.js';
+import {
+  sanitizeMessagesForLLM,
+  type ILLMClient,
+  type LLMCallOptions,
+  type LLMStreamChunk,
+} from './llm-client.js';
 
 const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -100,7 +105,8 @@ export class GeminiClient implements ILLMClient {
     messages: Message[],
     tools?: ToolDefinition[]
   ): Record<string, unknown> {
-    const { systemInstruction, contents } = this.convertMessages(messages);
+    const sanitizedMessages = sanitizeMessagesForLLM(messages);
+    const { systemInstruction, contents } = this.convertMessages(sanitizedMessages);
 
     const body: Record<string, unknown> = {
       contents,

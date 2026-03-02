@@ -53,9 +53,13 @@ export class TokenBudgetManager {
    * Current utilization ratio based on last prompt size vs available window.
    */
   get utilization(): number {
+    return this.getUtilizationForPrompt(this.lastPromptTokens);
+  }
+
+  getUtilizationForPrompt(promptTokens: number): number {
     const available = this.maxContextTokens - this.reserveTokens;
     if (available <= 0) return 1;
-    return Math.min(1, this.lastPromptTokens / available);
+    return Math.min(1, promptTokens / available);
   }
 
   /**
@@ -65,11 +69,20 @@ export class TokenBudgetManager {
     return this.utilization >= this.compactionThreshold;
   }
 
+  shouldCompactForPrompt(promptTokens: number): boolean {
+    return this.getUtilizationForPrompt(promptTokens) >= this.compactionThreshold;
+  }
+
   /**
    * Whether a budget warning should be emitted.
    */
   shouldWarn(): boolean {
     return this.utilization >= this.warningThreshold && !this.shouldCompact();
+  }
+
+  shouldWarnForPrompt(promptTokens: number): boolean {
+    const utilization = this.getUtilizationForPrompt(promptTokens);
+    return utilization >= this.warningThreshold && utilization < this.compactionThreshold;
   }
 
   /**

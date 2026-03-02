@@ -106,8 +106,70 @@ export class PromptComposer {
   compose(input: ComposeInput): Message[] {
     const systemContent = this.buildSystemPrompt(input);
     const maxHistory = input.maxHistoryMessages ?? 12;
-    const trimmedHistory = input.history.slice(-maxHistory);
+    const slicedHistory = input.history.slice(-maxHistory);
+    const alignedHistory = this.alignToFirstUserBoundary(slicedHistory);
+    const trimmedHistory = this.repairToolCallIntegrity(alignedHistory);
     return [{ role: 'system', content: systemContent }, ...trimmedHistory];
+  }
+
+  private alignToFirstUserBoundary(history: Message[]): Message[] {
+    const firstUserIndex = history.findIndex((msg) => msg.role === 'user');
+    if (firstUserIndex > 0) {
+      return history.slice(firstUserIndex);
+    }
+    return history;
+  }
+
+  /**
+   * Remove orphaned tool messages and unresolved assistant tool_calls after history slicing.
+   * This prevents provider-side validation errors (notably Anthropic tool_result/tool_use pairing).
+   */
+  private repairToolCallIntegrity(history: Message[]): Message[] {
+    if (history.length === 0) {
+      return history;
+    }
+
+    const announced = new Set<string>();
+    const resolved = new Set<string>();
+
+    for (const msg of history) {
+      if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
+        for (const tc of msg.toolCalls) {
+          announced.add(tc.id);
+        }
+        continue;
+      }
+      if (msg.role === 'tool' && msg.toolCallId && announced.has(msg.toolCallId)) {
+        resolved.add(msg.toolCallId);
+      }
+    }
+
+    const repaired: Message[] = [];
+    for (const msg of history) {
+      if (msg.role === 'tool') {
+        if (msg.toolCallId && resolved.has(msg.toolCallId)) {
+          repaired.push(msg);
+        }
+        continue;
+      }
+
+      if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
+        const keptToolCalls = msg.toolCalls.filter((tc) => resolved.has(tc.id));
+        if (keptToolCalls.length === 0) {
+          const text = typeof msg.content === 'string' ? msg.content.trim() : '';
+          if (text.length > 0) {
+            repaired.push({ ...msg, toolCalls: undefined });
+          }
+          continue;
+        }
+        repaired.push({ ...msg, toolCalls: keptToolCalls });
+        continue;
+      }
+
+      repaired.push(msg);
+    }
+
+    return repaired;
   }
 
   private buildSystemPrompt(input: ComposeInput): string {

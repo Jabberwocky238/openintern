@@ -11,7 +11,12 @@ import type {
 } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
 import { LLMError } from '../../utils/errors.js';
-import type { ILLMClient, LLMCallOptions, LLMStreamChunk } from './llm-client.js';
+import {
+  sanitizeMessagesForLLM,
+  type ILLMClient,
+  type LLMCallOptions,
+  type LLMStreamChunk,
+} from './llm-client.js';
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 
@@ -67,9 +72,10 @@ export class OpenAIClient implements ILLMClient {
     messages: Message[],
     tools?: ToolDefinition[]
   ): Record<string, unknown> {
+    const sanitizedMessages = sanitizeMessagesForLLM(messages);
     const body: Record<string, unknown> = {
       model: this.model,
-      messages: messages.map((m) => this.mapMessage(m)),
+      messages: sanitizedMessages.map((m) => this.mapMessage(m)),
       temperature: this.temperature,
       max_completion_tokens: this.maxTokens,
     };
@@ -182,6 +188,7 @@ export class OpenAIClient implements ILLMClient {
     const reader = body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let fullText = '';
     // Accumulate tool call fragments: index -> { id, name, arguments }
     const toolCallAccum = new Map<number, { id: string; name: string; arguments: string }>();
     let usage: LLMResponse['usage'] | undefined;
@@ -200,7 +207,8 @@ export class OpenAIClient implements ILLMClient {
           if (!trimmed || !trimmed.startsWith('data: ')) continue;
           const payload = trimmed.slice(6);
           if (payload === '[DONE]') {
-            yield { delta: '', done: true, usage, toolCalls: this.buildToolCalls(toolCallAccum) };
+            const toolCalls = this.resolveToolCallsFromAccumAndContent(toolCallAccum, fullText);
+            yield { delta: '', done: true, usage, toolCalls };
             return;
           }
 
@@ -231,6 +239,7 @@ export class OpenAIClient implements ILLMClient {
           // Text content delta
           const textDelta = (delta.content as string) ?? '';
           if (textDelta) {
+            fullText += textDelta;
             yield { delta: textDelta, done: false };
           }
 
@@ -260,7 +269,20 @@ export class OpenAIClient implements ILLMClient {
     }
 
     // If we exit without [DONE], emit final chunk
-    yield { delta: '', done: true, usage, toolCalls: this.buildToolCalls(toolCallAccum) };
+    const toolCalls = this.resolveToolCallsFromAccumAndContent(toolCallAccum, fullText);
+    yield { delta: '', done: true, usage, toolCalls };
+  }
+
+  private resolveToolCallsFromAccumAndContent(
+    accum: Map<number, { id: string; name: string; arguments: string }>,
+    content: string,
+  ): ToolCall[] | undefined {
+    const nativeToolCalls = this.buildToolCalls(accum);
+    if (nativeToolCalls && nativeToolCalls.length > 0) {
+      return nativeToolCalls;
+    }
+    const invokeToolCalls = this.extractInvokeToolCalls(content);
+    return invokeToolCalls.length > 0 ? invokeToolCalls : undefined;
   }
 
   private buildToolCalls(
@@ -289,7 +311,7 @@ export class OpenAIClient implements ILLMClient {
 
     const choice = choices[0]!;
     const message = choice.message as Record<string, unknown>;
-    const content = (message.content as string) ?? '';
+    const content = this.extractMessageContent(message.content);
 
     // Parse tool calls
     let toolCalls: ToolCall[] | undefined;
@@ -311,6 +333,13 @@ export class OpenAIClient implements ILLMClient {
       });
     }
 
+    if ((!toolCalls || toolCalls.length === 0) && content) {
+      const invokeToolCalls = this.extractInvokeToolCalls(content);
+      if (invokeToolCalls.length > 0) {
+        toolCalls = invokeToolCalls;
+      }
+    }
+
     // Parse usage
     const usage = data.usage as Record<string, number> | undefined;
     const promptTokens = usage?.prompt_tokens ?? 0;
@@ -325,5 +354,160 @@ export class OpenAIClient implements ILLMClient {
         totalTokens: promptTokens + completionTokens,
       },
     };
+  }
+
+  private extractMessageContent(rawContent: unknown): string {
+    if (typeof rawContent === 'string') {
+      return rawContent;
+    }
+    if (!Array.isArray(rawContent)) {
+      return '';
+    }
+    let content = '';
+    for (const part of rawContent) {
+      if (typeof part === 'string') {
+        content += part;
+        continue;
+      }
+      if (
+        part &&
+        typeof part === 'object' &&
+        'text' in part &&
+        typeof (part as { text?: unknown }).text === 'string'
+      ) {
+        content += (part as { text: string }).text;
+      }
+    }
+    return content;
+  }
+
+  private extractInvokeToolCalls(content: string): ToolCall[] {
+    if (!content.includes('<invoke')) {
+      return [];
+    }
+
+    const trimmed = content.trim();
+    const hasExplicitWrapper = /<\/?minimax:tool_call\b/i.test(content) || /^\(tool call\)/i.test(trimmed);
+    const residualContent = this.stripInvokeMarkup(content).replace(/^\(tool call\)\s*/i, '').trim();
+    if (!hasExplicitWrapper && residualContent.length > 0) {
+      return [];
+    }
+
+    const invokeRegex = /<invoke\b([^>]*)>([\s\S]*?)<\/invoke>/gi;
+    const toolCalls: ToolCall[] = [];
+    let invokeIndex = 0;
+
+    while (true) {
+      const match = invokeRegex.exec(content);
+      if (!match) break;
+
+      const attrs = match[1] ?? '';
+      const body = match[2] ?? '';
+      const name = this.extractTagAttribute(attrs, 'name');
+      if (!name) continue;
+
+      const id = this.extractTagAttribute(attrs, 'id') ?? `tc_invoke_${invokeIndex + 1}`;
+      invokeIndex += 1;
+
+      const parameters = this.extractInvokeParameters(body);
+      toolCalls.push({ id, name, parameters });
+    }
+
+    return toolCalls;
+  }
+
+  private stripInvokeMarkup(content: string): string {
+    return content
+      .replace(/<invoke\b[^>]*>[\s\S]*?<\/invoke>/gi, '')
+      .replace(/<\/?minimax:tool_call\b[^>]*>/gi, '');
+  }
+
+  private extractInvokeParameters(body: string): Record<string, unknown> {
+    const parameterRegex = /<parameter\b([^>]*)>([\s\S]*?)<\/parameter>/gi;
+    const parameters: Record<string, unknown> = {};
+    let foundParameter = false;
+
+    while (true) {
+      const match = parameterRegex.exec(body);
+      if (!match) break;
+
+      const attrs = match[1] ?? '';
+      const rawValue = match[2] ?? '';
+      const name = this.extractTagAttribute(attrs, 'name');
+      if (!name) continue;
+
+      foundParameter = true;
+      parameters[name] = this.parseParameterValue(rawValue);
+    }
+
+    if (foundParameter) {
+      return parameters;
+    }
+
+    const directObject = this.tryParseJsonObject(body.trim());
+    if (directObject) {
+      return directObject;
+    }
+
+    return {};
+  }
+
+  private extractTagAttribute(attrs: string, key: string): string | undefined {
+    const attrRegex = new RegExp(`\\b${key}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i');
+    const match = attrs.match(attrRegex);
+    const raw = match?.[1] ?? match?.[2] ?? match?.[3];
+    if (!raw) {
+      return undefined;
+    }
+    const cleaned = raw.replace(/^[\\'"`]+|[\\'"`]+$/g, '').trim();
+    return cleaned.length > 0 ? cleaned : undefined;
+  }
+
+  private parseParameterValue(rawValue: string): unknown {
+    const trimmed = rawValue.trim();
+    if (!trimmed) {
+      return '';
+    }
+
+    const jsonValue = this.tryParseJson(trimmed);
+    if (jsonValue !== undefined) {
+      return jsonValue;
+    }
+
+    if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+      const numeric = Number(trimmed);
+      if (!Number.isNaN(numeric)) {
+        return numeric;
+      }
+    }
+
+    if (/^(true|false)$/i.test(trimmed)) {
+      return trimmed.toLowerCase() === 'true';
+    }
+
+    if (/^null$/i.test(trimmed)) {
+      return null;
+    }
+
+    return trimmed;
+  }
+
+  private tryParseJsonObject(raw: string): Record<string, unknown> | undefined {
+    if (!raw) {
+      return undefined;
+    }
+    const parsed = this.tryParseJson(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return undefined;
+    }
+    return parsed as Record<string, unknown>;
+  }
+
+  private tryParseJson(raw: string): unknown {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return undefined;
+    }
   }
 }

@@ -5,6 +5,7 @@ import type { AgentContext } from './tool-policy.js';
 import { generateSpanId } from '../../utils/ids.js';
 import { logger } from '../../utils/logger.js';
 import { buildHumanOverrideNote, hasHumanModifiedArgs } from './hitl-note.js';
+import { summarizeToolResultForEvent } from './tool-result-content.js';
 
 /**
  * Tool metadata used for scheduling decisions.
@@ -698,7 +699,7 @@ export class ToolCallScheduler {
       type: 'tool.result',
       payload: {
         toolName,
-        result: result.result,
+        result: summarizeToolResultForEvent(result),
         isError: !result.success,
         ...(result.success ? {} : {
           error: { code: 'TOOL_ERROR', message: result.error ?? 'Unknown error' },

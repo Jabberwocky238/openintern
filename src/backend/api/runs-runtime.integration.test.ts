@@ -234,7 +234,7 @@ describeIfDatabase('Runs runtime integration (Postgres)', () => {
     expect(runMeta.status).toBe('completed');
   });
 
-  it('emits run.failed (non-hang) when maxSteps is 0', async () => {
+  it('emits run.completed with fallback output when maxSteps is 0', async () => {
     const server = await startTestServer({ maxSteps: 0 });
     cleanup.push(() => stopTestServer(server.appServer, server.sseManager, server.testDir));
 
@@ -242,13 +242,13 @@ describeIfDatabase('Runs runtime integration (Postgres)', () => {
     const events = await collectSSEUntilTerminal(server.baseUrl, run.run_id);
     const terminal = events.at(-1);
 
-    expect(terminal?.type).toBe('run.failed');
-    if (terminal?.type === 'run.failed') {
-      expect(terminal.payload.error.message).toContain('Max steps');
+    expect(terminal?.type).toBe('run.completed');
+    if (terminal?.type === 'run.completed') {
+      expect(terminal.payload.output).toContain('maximum number of tool call iterations (0)');
     }
 
-    const runMeta = await waitForRunStatus(server.baseUrl, run.run_id, ['failed']);
-    expect(runMeta.status).toBe('failed');
+    const runMeta = await waitForRunStatus(server.baseUrl, run.run_id, ['completed']);
+    expect(runMeta.status).toBe('completed');
   });
 
   it('cancels a pending run while another run occupies the worker', async () => {
