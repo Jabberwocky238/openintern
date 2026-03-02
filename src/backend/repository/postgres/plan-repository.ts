@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
-import type { PlanRecord, PlanTaskRecord } from './models.js';
-import type { IPlanRepository } from '../repository/interfaces/plan-repository.js';
+import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
+import type { IPlanRepository } from '../interfaces/plan-repository.js';
 
 interface PlanRow {
   id: string | number;

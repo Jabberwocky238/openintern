@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EscalationService } from './escalation-service.js';
-import type { RunRepository } from './run-repository.js';
-import type { GroupRepository } from './group-repository.js';
+import type { RunRepository } from '../repository/postgres/run-repository.js';
+import type { GroupRepository } from '../repository/postgres/group-repository.js';
 import type { RunRecord } from './models.js';
 
 function createMockRunRecord(overrides: Partial<RunRecord> = {}): RunRecord {

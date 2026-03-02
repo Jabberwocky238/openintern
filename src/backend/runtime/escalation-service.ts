@@ -1,5 +1,5 @@
-import type { RunRepository } from './run-repository.js';
-import type { GroupRepository } from './group-repository.js';
+import type { RunRepository } from '../repository/postgres/run-repository.js';
+import type { GroupRepository } from '../repository/postgres/group-repository.js';
 import type { DelegatedPermissions, RunRecord } from './models.js';
 import type { ScopeContext } from './scope.js';
 import { generateRunId } from '../../utils/ids.js';

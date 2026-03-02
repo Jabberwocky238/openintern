@@ -1,6 +1,6 @@
 import type { Event } from '../../types/events.js';
 import type { ScopeContext } from './scope.js';
-import { RunRepository } from './run-repository.js';
+import { RunRepository } from '../repository/postgres/run-repository.js';
 
 export interface EventPage {
   events: Event[];

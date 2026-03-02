@@ -13,7 +13,7 @@ import { Router, type Request, type Response } from 'express';
 import { CreateRoleSchema } from '../../types/orchestrator.js';
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { RoleRepository } from '../runtime/role-repository.js';
+import { RoleRepository } from '../repository/postgres/role-repository.js';
 
 export interface RolesRouterConfig {
   roleRepository: RoleRepository;

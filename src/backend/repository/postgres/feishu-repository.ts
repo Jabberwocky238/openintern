@@ -5,11 +5,11 @@ import type {
   FeishuSyncJob,
   FeishuSyncStats,
   FeishuSyncTrigger,
-} from '../../../../types/feishu.js';
-import { generatePluginId, generatePluginJobId } from '../../../../utils/ids.js';
-import { NotFoundError } from '../../../../utils/errors.js';
-import type { PluginRepository, PluginRow, PluginJobRow, PluginKvRow } from '../../plugin/repository.js';
-import type { IFeishuRepository } from '../../../repository/interfaces/feishu-repository.js';
+} from '../../../types/feishu.js';
+import { generatePluginId, generatePluginJobId } from '../../../utils/ids.js';
+import { NotFoundError } from '../../../utils/errors.js';
+import type { PluginRepository, PluginRow, PluginJobRow, PluginKvRow } from './plugin-repository.js';
+import type { IFeishuRepository } from '../interfaces/feishu-repository.js';
 
 const PROVIDER = 'feishu';
 

@@ -1,8 +1,8 @@
 import type { Pool } from 'pg';
-import type { Role, CreateRole } from '../../types/orchestrator.js';
-import { generateRoleId } from '../../utils/ids.js';
-import { NotFoundError } from '../../utils/errors.js';
-import type { IRoleRepository } from '../repository/interfaces/role-repository.js';
+import type { Role, CreateRole } from '../../../types/orchestrator.js';
+import { generateRoleId } from '../../../utils/ids.js';
+import { NotFoundError } from '../../../utils/errors.js';
+import type { IRoleRepository } from '../interfaces/role-repository.js';
 
 interface RoleRow {
   id: string;

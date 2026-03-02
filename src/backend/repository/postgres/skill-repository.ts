@@ -2,7 +2,7 @@ import type { Pool } from 'pg';
 import type { Skill, CreateSkill } from '../../../types/skill.js';
 import { generateSkillId } from '../../../utils/ids.js';
 import { NotFoundError } from '../../../utils/errors.js';
-import type { ISkillRepository } from '../../repository/interfaces/skill-repository.js';
+import type { ISkillRepository } from '../interfaces/skill-repository.js';
 
 interface SkillRow {
   id: string;

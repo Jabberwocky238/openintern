@@ -6,7 +6,7 @@ import type { RuntimeExecutorConfig } from '../executor.js';
 import type { PlanRecord, PlanTaskRecord } from '../models.js';
 import { generatePlanOutput } from '../planner/planner-client.js';
 import { PlanValidationError, validatePlannerOutput } from '../planner/plan-validator.js';
-import type { PlanRepository } from '../plan-repository.js';
+import type { PlanRepository } from '../../repository/postgres/plan-repository.js';
 
 type Scope = { orgId: string; userId: string; projectId: string | null };
 type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';

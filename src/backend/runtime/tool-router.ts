@@ -13,7 +13,7 @@ import type { AgentContext } from './tool-policy.js';
 import { ToolPolicy } from './tool-policy.js';
 import type { SkillRegistry } from './skill/registry.js';
 import type { EscalationService } from './escalation-service.js';
-import type { GroupRepository } from './group-repository.js';
+import type { GroupRepository } from '../repository/postgres/group-repository.js';
 import type { RuntimeTool, ToolContext } from './tools/_helpers.js';
 
 // ─── Tool modules ────────────────────────────────────────
@@ -120,8 +120,8 @@ export interface RuntimeToolRouterConfig {
   skillRegistry?: SkillRegistry;
   escalationService?: EscalationService;
   groupRepository?: GroupRepository;
-  runRepository?: import('./run-repository.js').RunRepository;
-  roleRepository?: import('./role-repository.js').RoleRepository;
+  runRepository?: import('../repository/postgres/run-repository.js').RunRepository;
+  roleRepository?: import('../repository/postgres/role-repository.js').RoleRepository;
   runQueue?: { enqueue(runId: string): Promise<void> | void };
   currentRunId?: string;
   currentSessionKey?: string;

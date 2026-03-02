@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
 import type { Message } from '../../types/agent.js';
-import { RunRepository } from './run-repository.js';
+import { RunRepository } from '../repository/postgres/run-repository.js';
 
 export interface SlimCheckpointState {
   step_id: string;

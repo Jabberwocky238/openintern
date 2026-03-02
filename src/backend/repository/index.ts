@@ -31,3 +31,5 @@ export type {
   CreateFeishuSyncJobInput,
   UpsertFeishuSourceStateInput,
 } from './interfaces/feishu-repository.js';
+
+export * as productionRepository from './postgres/index.js';

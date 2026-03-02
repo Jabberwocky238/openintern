@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { RunQueue } from '../../queue/run-queue.js';
 import type { RunRecord } from '../../runtime/models.js';
-import type { RunRepository } from '../../runtime/run-repository.js';
+import type { RunRepository } from '../../repository/postgres/run-repository.js';
 import type { FeishuClient } from '../../runtime/integrations/feishu/client.js';
 import { FeishuImService } from './im-service.js';
 

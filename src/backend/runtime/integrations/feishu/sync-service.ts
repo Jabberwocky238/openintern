@@ -10,7 +10,7 @@ import {
 import { AgentError } from '../../../../utils/errors.js';
 import { FeishuClient } from './client.js';
 import { normalizeBitableTableToChunks, normalizeDocxToChunks } from './normalizer.js';
-import { FeishuRepository } from './repository.js';
+import { FeishuRepository } from '../../../repository/postgres/feishu-repository.js';
 import { MemoryService } from '../../memory-service.js';
 
 interface SyncSourceDocx {

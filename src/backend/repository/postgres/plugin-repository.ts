@@ -1,5 +1,5 @@
 import type { Pool } from 'pg';
-import type { IPluginRepository } from '../../repository/interfaces/plugin-repository.js';
+import type { IPluginRepository } from '../interfaces/plugin-repository.js';
 
 // ─── Row types ───────────────────────────────────────────
 

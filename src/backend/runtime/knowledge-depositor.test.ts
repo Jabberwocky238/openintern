@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { KnowledgeDepositor } from './knowledge-depositor.js';
-import type { RunRepository } from './run-repository.js';
+import type { RunRepository } from '../repository/postgres/run-repository.js';
 import type { MemoryService } from './memory-service.js';
 import type { RunRecord } from './models.js';
 

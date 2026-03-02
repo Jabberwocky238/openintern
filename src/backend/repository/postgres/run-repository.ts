@@ -1,8 +1,8 @@
 import type { Pool, PoolClient } from 'pg';
-import type { LLMConfigRequest } from '../../types/api.js';
-import type { RunMeta } from '../../types/run.js';
-import { NotFoundError } from '../../utils/errors.js';
-import type { Event } from '../../types/events.js';
+import type { LLMConfigRequest } from '../../../types/api.js';
+import type { RunMeta } from '../../../types/run.js';
+import { NotFoundError } from '../../../utils/errors.js';
+import type { Event } from '../../../types/events.js';
 import type {
   DelegatedPermissions,
   EventCursorPage,
@@ -11,9 +11,9 @@ import type {
   RunMode,
   RunRecord,
   RunStatus,
-} from './models.js';
-import { appendScopePredicate, type ScopeContext } from './scope.js';
-import type { IRunRepository } from '../repository/interfaces/run-repository.js';
+} from '../../runtime/models.js';
+import { appendScopePredicate, type ScopeContext } from '../../runtime/scope.js';
+import type { IRunRepository } from '../interfaces/run-repository.js';
 
 interface RunRow {
   id: string;

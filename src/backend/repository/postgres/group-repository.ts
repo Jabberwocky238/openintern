@@ -1,8 +1,8 @@
 import type { Pool } from 'pg';
-import type { Group, CreateGroup, GroupMember, AddMember } from '../../types/orchestrator.js';
-import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '../../utils/ids.js';
-import { NotFoundError } from '../../utils/errors.js';
-import type { IGroupRepository } from '../repository/interfaces/group-repository.js';
+import type { Group, CreateGroup, GroupMember, AddMember } from '../../../types/orchestrator.js';
+import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '../../../utils/ids.js';
+import { NotFoundError } from '../../../utils/errors.js';
+import type { IGroupRepository } from '../interfaces/group-repository.js';
 
 interface GroupRow {
   id: string;

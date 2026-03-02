@@ -1,6 +1,6 @@
 import { logger } from '../../../utils/logger.js';
 import { SkillRegistry } from '../skill/registry.js';
-import type { SkillRepository } from '../skill/repository.js';
+import type { SkillRepository } from '../../repository/postgres/skill-repository.js';
 import type { RuntimeToolRouter } from '../tool-router.js';
 
 export const BUILTIN_TOOL_RISK_LEVELS: Record<string, 'low' | 'medium' | 'high'> = {
