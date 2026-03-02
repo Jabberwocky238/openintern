@@ -259,6 +259,7 @@ describe('SingleAgentRunner', () => {
       'run.started',
       'step.started',
       'llm.called',
+      'tool.hint',
       'tool.batch.started',
       'tool.called',
       'tool.result',
@@ -276,6 +277,12 @@ describe('SingleAgentRunner', () => {
     expect(stepCompletedEvents).toHaveLength(2);
     expect(stepCompletedEvents[0]?.payload.resultType).toBe('tool_call');
     expect(stepCompletedEvents[1]?.payload.resultType).toBe('final_answer');
+    const toolHint = events.find((event) => event.type === 'tool.hint');
+    expect(toolHint).toBeDefined();
+    if (toolHint?.type === 'tool.hint') {
+      expect(toolHint.payload.hint).toContain('read_file');
+      expect(toolHint.payload.tool_count).toBe(1);
+    }
 
     // Step 1: step.started -> memory_search -> model -> tool -> checkpoint.saved -> step.completed
     expect(nthIndexOf(timeline, 'event:step.started', 1)).toBeLessThan(
@@ -313,7 +320,7 @@ describe('SingleAgentRunner', () => {
     assertEventMetadata(events);
   });
 
-  it('emits run.failed when max steps is reached', async () => {
+  it('forces final synthesis on the last step instead of executing another tool batch', async () => {
     const timeline: string[] = [];
     const memoryService = {
       memory_search: vi.fn(async () => {
@@ -378,12 +385,19 @@ describe('SingleAgentRunner', () => {
       timeline
     );
 
-    expect(result.status).toBe('failed');
-    expect(result.error).toContain('Max steps (1) reached');
-    expect(events.some((event) => event.type === 'run.completed')).toBe(false);
-    const failed = events.find((event) => event.type === 'run.failed');
-    expect(failed).toBeDefined();
-    expect(failed?.payload.error.message).toContain('Max steps (1) reached');
+    expect(result.status).toBe('completed');
+    expect(result.output).toContain('need tool');
+    expect(events.some((event) => event.type === 'run.failed')).toBe(false);
+    const warning = events.find(
+      (event) => event.type === 'run.warning' && event.payload.code === 'MAX_STEPS_FORCE_FINALIZE'
+    );
+    expect(warning).toBeDefined();
+    expect(toolRouter.callTool).not.toHaveBeenCalled();
+    const completed = events.find((event) => event.type === 'run.completed');
+    expect(completed).toBeDefined();
+    if (completed?.type === 'run.completed') {
+      expect(completed.payload.output).toContain('need tool');
+    }
     assertEventMetadata(events);
   });
 
@@ -443,6 +457,78 @@ describe('SingleAgentRunner', () => {
     expect(firstCallMessages?.[0]?.content).toContain('read_file');
   });
 
+  it('forces final synthesis when lookup-only loop persists near step limit', async () => {
+    const memoryService = {
+      memory_search: vi.fn(async () => []),
+      memory_search_pa: vi.fn(async () => []),
+      memory_search_tiered: vi.fn(async () => []),
+    };
+    const checkpointService = {
+      save: vi.fn(async () => undefined),
+    };
+    const toolRouter = {
+      listTools: vi.fn(() => [
+        {
+          name: 'grep_files',
+          description: 'search text',
+          parameters: {
+            type: 'object',
+            properties: { pattern: { type: 'string' } },
+            required: ['pattern'],
+          },
+        },
+      ]),
+      listSkills: vi.fn(() => []),
+      callTool: vi.fn(async () => ({
+        success: true,
+        result: { matches: [] },
+        duration: 1,
+      })),
+    };
+    const chat = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content: 'search pass 1',
+        usage: usage(),
+        toolCalls: [{ id: 'tc_1', name: 'grep_files', parameters: { pattern: 'a' } }],
+      })
+      .mockResolvedValueOnce({
+        content: 'search pass 2',
+        usage: usage(),
+        toolCalls: [{ id: 'tc_2', name: 'grep_files', parameters: { pattern: 'b' } }],
+      })
+      .mockResolvedValueOnce({
+        content: 'search pass 3',
+        usage: usage(),
+        toolCalls: [{ id: 'tc_3', name: 'grep_files', parameters: { pattern: 'c' } }],
+      })
+      .mockResolvedValueOnce({
+        content: 'final synthesis with data',
+        usage: usage(),
+      });
+    mockedCreateLLMClient.mockReturnValue({ chat });
+
+    const runner = new SingleAgentRunner({
+      maxSteps: 4,
+      modelConfig: { provider: 'mock', model: 'mock-model' },
+      checkpointService: checkpointService as never,
+      memoryService: memoryService as never,
+      toolRouter: toolRouter as never,
+    });
+
+    const { events, result } = await collectRun(runner, 'summarize papers', runnerContext, []);
+
+    expect(result.status).toBe('completed');
+    expect(result.output).toContain('final synthesis');
+    expect(toolRouter.callTool).toHaveBeenCalledTimes(2);
+    const warning = events.find(
+      (event) => event.type === 'run.warning'
+        && event.payload.code === 'LOOKUP_LOOP_FORCE_FINALIZE'
+    );
+    expect(warning).toBeDefined();
+    expect(events.some((event) => event.type === 'run.failed')).toBe(false);
+  });
+
   it('emits run.failed when model throws instead of hanging silently', async () => {
     const timeline: string[] = [];
     const memoryService = {
@@ -499,6 +585,48 @@ describe('SingleAgentRunner', () => {
     ]);
     expect(checkpointService.save).not.toHaveBeenCalled();
     assertEventMetadata(events);
+  });
+
+  it('strips think blocks from final output', async () => {
+    const memoryService = {
+      memory_search: vi.fn(async () => []),
+      memory_search_pa: vi.fn(async () => []),
+      memory_search_tiered: vi.fn(async () => []),
+    };
+    const checkpointService = {
+      save: vi.fn(async () => undefined),
+    };
+    const toolRouter = {
+      listTools: vi.fn(() => []),
+      listSkills: vi.fn(() => []),
+      callTool: vi.fn(async () => ({
+        success: true,
+        result: {},
+        duration: 1,
+      })),
+    };
+    const chat = vi.fn(async () => ({
+      content: '<think>internal plan</think>\nfinal answer',
+      usage: usage(),
+    }));
+    mockedCreateLLMClient.mockReturnValue({ chat });
+
+    const runner = new SingleAgentRunner({
+      maxSteps: 2,
+      modelConfig: { provider: 'mock', model: 'mock-model' },
+      checkpointService: checkpointService as never,
+      memoryService: memoryService as never,
+      toolRouter: toolRouter as never,
+    });
+
+    const { events, result } = await collectRun(runner, 'sanitize output', runnerContext, []);
+
+    expect(result.status).toBe('completed');
+    expect(result.output).toBe('final answer');
+    const completed = events.find((event) => event.type === 'run.completed');
+    if (completed?.type === 'run.completed') {
+      expect(completed.payload.output).toBe('final answer');
+    }
   });
 
   it('streams llm.token events before llm.called when streaming is available', async () => {
@@ -636,6 +764,100 @@ describe('SingleAgentRunner', () => {
     expect(nextCall?.[4]).toBe(5);
   });
 
+  it('injects synthetic tool results for orphaned tool calls on resume', async () => {
+    const memoryService = {
+      memory_search: vi.fn(async () => []),
+      memory_search_pa: vi.fn(async () => []),
+      memory_search_tiered: vi.fn(async () => []),
+    };
+    const checkpointService = {
+      save: vi.fn(async () => undefined),
+    };
+    const toolRouter = {
+      listTools: vi.fn(() => [
+        {
+          name: 'read_file',
+          description: 'read file',
+          parameters: {
+            type: 'object',
+            properties: { path: { type: 'string' } },
+            required: ['path'],
+          },
+        },
+      ]),
+      listSkills: vi.fn(() => []),
+      callTool: vi.fn(async () => ({
+        success: true,
+        result: { content: 'ok' },
+        duration: 1,
+      })),
+    };
+    const chat = vi.fn(async () => ({
+      content: 'done',
+      usage: usage(),
+    }));
+    mockedCreateLLMClient.mockReturnValue({ chat });
+
+    const runner = new SingleAgentRunner({
+      maxSteps: 3,
+      modelConfig: { provider: 'mock', model: 'mock-model' },
+      checkpointService: checkpointService as never,
+      memoryService: memoryService as never,
+      toolRouter: toolRouter as never,
+    });
+
+    const orphanedToolCallId = 'tc_orphan_1';
+    const resumedMessages = [
+      { role: 'user' as const, content: 'read README' },
+      {
+        role: 'assistant' as const,
+        content: 'calling tool',
+        toolCalls: [
+          {
+            id: orphanedToolCallId,
+            name: 'read_file',
+            parameters: { path: 'README.md' },
+          },
+        ],
+      },
+    ];
+
+    const { events, result } = await collectRun(
+      runner,
+      'ignored after resume',
+      {
+        ...runnerContext,
+        resumeFrom: {
+          stepNumber: 1,
+          messages: resumedMessages,
+          workingState: { plan: 'resume-with-orphan' },
+        },
+      },
+      []
+    );
+
+    expect(result.status).toBe('completed');
+    const resumedEvent = events.find((event) => event.type === 'run.resumed');
+    expect(resumedEvent).toBeDefined();
+    if (resumedEvent?.type === 'run.resumed') {
+      expect(resumedEvent.payload.orphaned_tool_calls).toBe(1);
+    }
+
+    expect(chat).toHaveBeenCalled();
+    const firstCall = chat.mock.calls.at(0);
+    const firstCallArgs = (firstCall as unknown[] | undefined) ?? [];
+    const firstCallMessages = (firstCallArgs[0] as Array<{
+      role: string;
+      toolCallId?: string;
+      content: string;
+    }> | undefined) ?? [];
+    const synthetic = firstCallMessages.find(
+      (message) => message.role === 'tool' && message.toolCallId === orphanedToolCallId
+    );
+    expect(synthetic).toBeDefined();
+    expect(synthetic?.content).toContain('interrupted');
+  });
+
   it('emits run.suspended and returns suspended when scheduler throws RunSuspendedError', async () => {
     const memoryService = {
       memory_search: vi.fn(async () => []),
@@ -702,6 +924,7 @@ describe('SingleAgentRunner', () => {
       'run.started',
       'step.started',
       'llm.called',
+      'tool.hint',
       'run.suspended',
     ]);
     expect(events.some((event) => event.type === 'run.failed')).toBe(false);

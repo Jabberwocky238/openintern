@@ -1,21 +1,23 @@
-import type { LLMConfig, Message, ToolCall, ContentPart } from '../../types/agent.js';
+import type { LLMConfig, Message, ToolCall, ContentPart, LLMResponse } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
 import type { Event, EventType } from '../../types/events.js';
 import type { ScopeContext } from './scope.js';
 import { createLLMClient, type ILLMClient } from '../agent/llm-client.js';
+import { TokenCounter } from '../agent/token-counter.js';
+import { detectOrphanedToolCalls, generateSyntheticResults } from '../agent/orphan-detector.js';
 import { generateSpanId, generateStepId } from '../../utils/ids.js';
 import { logger } from '../../utils/logger.js';
 import { CheckpointService } from './checkpoint-service.js';
 import { CompactionService } from './compaction-service.js';
 import { MemoryService } from './memory-service.js';
-import { PromptComposer, type SkillInjection } from './prompt-composer.js';
+import { PromptComposer, type ComposeInput, type SkillInjection } from './prompt-composer.js';
 import { RuntimeToolRouter } from './tool-router.js';
 import { TokenBudgetManager } from './token-budget-manager.js';
 import { ToolCallScheduler, RunSuspendedError } from './tool-scheduler.js';
 import type { ToolResult } from '../../types/agent.js';
 import type { AgentContext } from './tool-policy.js';
 import type { GroupWithRoles } from './group-repository.js';
-import { formatToolResultMessageContent } from './tool-result-content.js';
+import { formatToolResultMessageContent, summarizeToolResultForEvent } from './tool-result-content.js';
 
 export interface RunnerContext {
   runId: string;
@@ -84,6 +86,19 @@ export interface SingleAgentRunnerConfig {
 
 /** Max consecutive identical tool call signatures before doom-loop breaker fires */
 const DOOM_LOOP_THRESHOLD = 3;
+const LOOKUP_LOOP_STREAK_THRESHOLD = 3;
+const LOOKUP_LOOP_STEPS_REMAINING_THRESHOLD = 2;
+const LOOKUP_TOOL_NAMES = new Set<string>([
+  'read_file',
+  'grep_files',
+  'glob_files',
+  'list_files',
+  'memory_search',
+  'memory_get',
+]);
+const PREFLIGHT_COMPACTION_ATTEMPTS = 2;
+const THINK_BLOCK_REGEX = /<think>[\s\S]*?<\/think>/gi;
+const TOOL_HINT_VALUE_MAX_LEN = 40;
 
 class RunCancelledError extends Error {
   constructor(message: string = 'Run cancelled by user') {
@@ -98,6 +113,7 @@ export class SingleAgentRunner implements AgentRunner {
   private readonly promptComposer: PromptComposer;
   private readonly budgetManager: TokenBudgetManager | null;
   private readonly compactionService: CompactionService | null;
+  private readonly promptTokenCounter: TokenCounter;
   /** Tracks recent tool call signatures for doom-loop detection */
   private readonly recentToolSignatures: string[] = [];
 
@@ -110,6 +126,7 @@ export class SingleAgentRunner implements AgentRunner {
     });
     this.budgetManager = config.budgetManager ?? null;
     this.compactionService = config.compactionService ?? null;
+    this.promptTokenCounter = new TokenCounter();
   }
 
   private throwIfAborted(signal?: AbortSignal): void {
@@ -118,15 +135,54 @@ export class SingleAgentRunner implements AgentRunner {
     }
   }
 
+  private stripThinkBlocks(content: string): string {
+    return content.replace(THINK_BLOCK_REGEX, '').trim();
+  }
+
+  private sanitizeFinalOutput(content: string): string {
+    const stripped = this.stripThinkBlocks(content);
+    if (stripped.length > 0) {
+      return stripped;
+    }
+    const fallback = content.trim();
+    return fallback.length > 0 ? fallback : 'I have completed processing but have no response to give.';
+  }
+
+  private buildMaxStepsOutput(): string {
+    return (
+      `I reached the maximum number of tool call iterations (${this.maxSteps}) ` +
+      'without completing the task. You can try breaking the task into smaller steps.'
+    );
+  }
+
+  private formatToolHint(toolCalls: ToolCall[]): string {
+    const hints = toolCalls.map((toolCall) => {
+      const firstArg = Object.values(toolCall.parameters ?? {}).find((value) => typeof value === 'string');
+      if (typeof firstArg !== 'string') {
+        return toolCall.name;
+      }
+      if (firstArg.length > TOOL_HINT_VALUE_MAX_LEN) {
+        return `${toolCall.name}("${firstArg.slice(0, TOOL_HINT_VALUE_MAX_LEN)}...")`;
+      }
+      return `${toolCall.name}("${firstArg}")`;
+    });
+    return hints.join(', ');
+  }
+
   async *run(input: string, ctx: RunnerContext): AsyncGenerator<Event, RunnerResult, void> {
     const resuming = ctx.resumeFrom != null;
     let messages: Message[];
     let lastSavedMessageCount: number;
     let startStep: number;
+    let orphanedToolCallCount = 0;
 
     if (resuming) {
-      messages = ctx.resumeFrom!.messages;
-      lastSavedMessageCount = messages.length;
+      const resumedMessages = [...ctx.resumeFrom!.messages];
+      const orphaned = detectOrphanedToolCalls(resumedMessages);
+      orphanedToolCallCount = orphaned.length;
+      const syntheticResults = generateSyntheticResults(orphaned);
+      messages = [...resumedMessages, ...syntheticResults];
+      lastSavedMessageCount = resumedMessages.length;
       startStep = ctx.resumeFrom!.stepNumber + 1;
     } else {
       const userContent: string | ContentPart[] = ctx.inputContent ?? input;
@@ -143,13 +199,14 @@ export class SingleAgentRunner implements AgentRunner {
     const startedAt = Date.now();
     let lastToolResult: unknown = null;
     let lastMemoryHits: Array<{ id: string; snippet: string; score: number; type: string }> = [];
+    let lookupOnlyToolStreak = 0;
     let steps = 0;
 
     if (resuming) {
       const checkpointStepId = generateStepId(ctx.resumeFrom!.stepNumber);
       yield this.createEvent(ctx, generateStepId(0), rootSpan, 'run.resumed', {
         checkpoint_step_id: checkpointStepId,
-        orphaned_tool_calls: 0,
+        orphaned_tool_calls: orphanedToolCallCount,
       });
     } else {
       yield this.createEvent(ctx, generateStepId(0), rootSpan, 'run.started' as EventType, { input });
@@ -200,7 +257,7 @@ export class SingleAgentRunner implements AgentRunner {
         // ── Compose prompt via PromptComposer ──
         const skills = this.config.toolRouter.listSkills();
         const tools = this.config.toolRouter.listTools();
-        const contextMessages = this.promptComposer.compose({
+        const composeInput: ComposeInput = {
           history: messages,
           memoryHits,
           skills,
@@ -226,7 +283,19 @@ export class SingleAgentRunner implements AgentRunner {
                 },
               }
             : {}),
-        });
+        };
+        let contextMessages = this.promptComposer.compose(composeInput);
+        const preflight = yield* this.ensureContextBudgetBeforeLLM(
+          composeInput,
+          contextMessages,
+          messages,
+          ctx,
+          stepId,
+          rootSpan,
+          step
+        );
+        contextMessages = preflight.contextMessages;
+        messages = preflight.messages;
 
         // ── LLM call ──
         const llmStarted = Date.now();
@@ -250,6 +319,137 @@ export class SingleAgentRunner implements AgentRunner {
 
         // ── Tool calls via ToolCallScheduler ──
         if (response.toolCalls && response.toolCalls.length > 0) {
+          const toolHint = this.formatToolHint(response.toolCalls);
+          yield this.createEvent(ctx, stepId, rootSpan, 'tool.hint', {
+            hint: toolHint,
+            tools: response.toolCalls.map((tc) => tc.name),
+            tool_count: response.toolCalls.length,
+          });
+
+          if (step >= this.maxSteps) {
+            yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+              code: 'MAX_STEPS_FORCE_FINALIZE',
+              message: `Reached step limit (${this.maxSteps}) with pending tool calls; forcing final synthesis.`,
+            });
+
+            let forcedResponse: LLMResponse | null = null;
+            try {
+              const forcedStarted = Date.now();
+              forcedResponse = await this.requestForcedFinalAnswer(
+                llmClient,
+                contextMessages,
+                response.content,
+                ctx
+              );
+              this.throwIfAborted(ctx.abortSignal);
+              const forcedDuration = Date.now() - forcedStarted;
+              this.budgetManager?.update(forcedResponse.usage);
+
+              yield this.createEvent(ctx, stepId, rootSpan, 'llm.called', {
+                model: this.config.modelConfig.model,
+                promptTokens: forcedResponse.usage.promptTokens,
+                completionTokens: forcedResponse.usage.completionTokens,
+                totalTokens: forcedResponse.usage.totalTokens,
+                duration_ms: forcedDuration,
+              });
+            } catch (finalizeError) {
+              yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+                code: 'MAX_STEPS_FORCE_FINALIZE_FAILED',
+                message: `Forced final synthesis failed: ${finalizeError instanceof Error ? finalizeError.message : String(finalizeError)}`,
+              });
+            }
+
+            const finalOutput = this.sanitizeFinalOutput(
+              forcedResponse?.content || response.content || this.buildMaxStepsOutput()
+            );
+            messages.push({ role: 'assistant', content: finalOutput });
+            lastSavedMessageCount = await this.saveCheckpoint(
+              ctx,
+              stepId,
+              messages,
+              lastSavedMessageCount,
+              memoryHits,
+              lastToolResult
+            );
+
+            yield this.createEvent(ctx, stepId, rootSpan, 'step.completed', {
+              stepNumber: step,
+              resultType: 'final_answer',
+              duration_ms: Date.now() - stepStart,
+            });
+
+            yield this.createEvent(ctx, stepId, rootSpan, 'run.completed', {
+              output: finalOutput,
+              duration_ms: Date.now() - startedAt,
+            });
+
+            return {
+              status: 'completed',
+              output: finalOutput,
+              steps,
+            };
+          }
+
+          const lookupOnlyCalls = response.toolCalls.every((tc) => LOOKUP_TOOL_NAMES.has(tc.name));
+          lookupOnlyToolStreak = lookupOnlyCalls ? lookupOnlyToolStreak + 1 : 0;
+          const stepsRemaining = this.maxSteps - step;
+
+          if (this.shouldForceFinalizeForLookupLoop(lookupOnlyToolStreak, stepsRemaining)) {
+            yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+              code: 'LOOKUP_LOOP_FORCE_FINALIZE',
+              message: `Detected ${lookupOnlyToolStreak} consecutive lookup-tool steps with ${stepsRemaining} steps remaining; forcing final synthesis.`,
+            });
+
+            const forcedStarted = Date.now();
+            const forcedResponse = await this.requestForcedFinalAnswer(
+              llmClient,
+              contextMessages,
+              response.content,
+              ctx
+            );
+            this.throwIfAborted(ctx.abortSignal);
+            const forcedDuration = Date.now() - forcedStarted;
+            this.budgetManager?.update(forcedResponse.usage);
+
+            yield this.createEvent(ctx, stepId, rootSpan, 'llm.called', {
+              model: this.config.modelConfig.model,
+              promptTokens: forcedResponse.usage.promptTokens,
+              completionTokens: forcedResponse.usage.completionTokens,
+              totalTokens: forcedResponse.usage.totalTokens,
+              duration_ms: forcedDuration,
+            });
+
+            const finalOutput = this.sanitizeFinalOutput(
+              forcedResponse.content || response.content || this.buildMaxStepsOutput()
+            );
+            messages.push({ role: 'assistant', content: finalOutput });
+            lastSavedMessageCount = await this.saveCheckpoint(
+              ctx,
+              stepId,
+              messages,
+              lastSavedMessageCount,
+              memoryHits,
+              lastToolResult
+            );
+
+            yield this.createEvent(ctx, stepId, rootSpan, 'step.completed', {
+              stepNumber: step,
+              resultType: 'final_answer',
+              duration_ms: Date.now() - stepStart,
+            });
+
+            yield this.createEvent(ctx, stepId, rootSpan, 'run.completed', {
+              output: finalOutput,
+              duration_ms: Date.now() - startedAt,
+            });
+
+            return {
+              status: 'completed',
+              output: finalOutput,
+              steps,
+            };
+          }
+
           // Doom-loop detection
           const doomDetected = this.detectRepeatedToolPattern(response.toolCalls);
           if (doomDetected) {
@@ -324,8 +524,11 @@ export class SingleAgentRunner implements AgentRunner {
           continue;
         }
 
+        lookupOnlyToolStreak = 0;
+
         // ── Final answer ──
-        messages.push({ role: 'assistant', content: response.content });
+        const finalOutput = this.sanitizeFinalOutput(response.content);
+        messages.push({ role: 'assistant', content: finalOutput });
         lastSavedMessageCount = await this.saveCheckpoint(ctx, stepId, messages, lastSavedMessageCount, memoryHits, lastToolResult);
 
         yield this.createEvent(ctx, stepId, rootSpan, 'step.completed', {
@@ -335,18 +538,44 @@ export class SingleAgentRunner implements AgentRunner {
         });
 
         yield this.createEvent(ctx, stepId, rootSpan, 'run.completed', {
-          output: response.content,
+          output: finalOutput,
           duration_ms: Date.now() - startedAt,
         });
 
         return {
           status: 'completed',
-          output: response.content,
+          output: finalOutput,
           steps,
         };
       }
+      const maxStepId = generateStepId(Math.max(steps, 1));
+      const output = this.buildMaxStepsOutput();
+      messages.push({ role: 'assistant', content: output });
+      lastSavedMessageCount = await this.saveCheckpoint(
+        ctx,
+        maxStepId,
+        messages,
+        lastSavedMessageCount,
+        lastMemoryHits,
+        lastToolResult
+      );
 
-      throw new Error(`Max steps (${this.maxSteps}) reached`);
+      yield this.createEvent(ctx, maxStepId, rootSpan, 'run.warning', {
+        code: 'MAX_STEPS_REACHED',
+        message: `Maximum step limit reached (${this.maxSteps}); returning fallback final answer.`,
+        context: { step: steps, maxSteps: this.maxSteps },
+      });
+
+      yield this.createEvent(ctx, maxStepId, rootSpan, 'run.completed', {
+        output,
+        duration_ms: Date.now() - startedAt,
+      });
+
+      return {
+        status: 'completed',
+        output,
+        steps,
+      };
     } catch (error) {
       if (error instanceof RunSuspendedError) {
         const stepId = generateStepId(Math.max(steps, 1));
@@ -455,6 +684,37 @@ export class SingleAgentRunner implements AgentRunner {
     return tail.every((s) => s === signature);
   }
 
+  private shouldForceFinalizeForLookupLoop(
+    lookupOnlyToolStreak: number,
+    stepsRemaining: number
+  ): boolean {
+    return (
+      lookupOnlyToolStreak >= LOOKUP_LOOP_STREAK_THRESHOLD
+      && stepsRemaining <= LOOKUP_LOOP_STEPS_REMAINING_THRESHOLD
+    );
+  }
+
+  private async requestForcedFinalAnswer(
+    llmClient: ILLMClient,
+    contextMessages: Message[],
+    currentDraft: string,
+    ctx: RunnerContext
+  ): Promise<LLMResponse> {
+    const forcedMessages: Message[] = [
+      ...contextMessages,
+      {
+        role: 'assistant',
+        content: this.stripThinkBlocks(currentDraft) || '(tool call proposed)',
+      },
+      {
+        role: 'user',
+        content: 'Stop using tools now. Based only on gathered evidence so far, provide the best possible final answer with concrete data and explicitly mark uncertainties.',
+      },
+    ];
+    const llmOptions = ctx.abortSignal ? { signal: ctx.abortSignal } : undefined;
+    return llmClient.chat(forcedMessages, undefined, llmOptions);
+  }
+
   /**
    * Check context budget and auto-compact if needed.
    */
@@ -498,6 +758,83 @@ export class SingleAgentRunner implements AgentRunner {
     }
 
     return { compacted: false, messages };
+  }
+
+  /**
+   * Perform preflight prompt-token budget check right before LLM call.
+   * This catches sudden context spikes (usually from tool outputs) in the same step.
+   */
+  private async *ensureContextBudgetBeforeLLM(
+    composeInput: ComposeInput,
+    contextMessages: Message[],
+    historyMessages: Message[],
+    ctx: RunnerContext,
+    stepId: string,
+    rootSpan: string,
+    currentStep: number
+  ): AsyncGenerator<Event, { contextMessages: Message[]; messages: Message[] }, void> {
+    if (!this.budgetManager || !this.compactionService) {
+      return { contextMessages, messages: historyMessages };
+    }
+
+    let messages = historyMessages;
+    let llmMessages = contextMessages;
+
+    for (let attempt = 0; attempt < PREFLIGHT_COMPACTION_ATTEMPTS; attempt++) {
+      const promptTokens = await this.promptTokenCounter.countMessages(llmMessages);
+      if (this.budgetManager.shouldCompactForPrompt(promptTokens)) {
+        logger.info('Preflight prompt compaction triggered', {
+          runId: ctx.runId,
+          step: currentStep,
+          promptTokens,
+        });
+
+        const result = this.compactionService.compactMessages(messages);
+        if (result.messages_after >= result.messages_before) {
+          break;
+        }
+
+        messages = result.messages;
+        this.budgetManager.recordCompaction();
+        yield this.createEvent(ctx, stepId, rootSpan, 'run.compacted', {
+          messages_before: result.messages_before,
+          messages_after: result.messages_after,
+          tokens_saved: result.tokens_saved_estimate,
+        });
+        llmMessages = this.promptComposer.compose({
+          ...composeInput,
+          history: messages,
+        });
+        continue;
+      }
+
+      if (this.budgetManager.shouldWarnForPrompt(promptTokens)) {
+        yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+          code: 'PROMPT_CONTEXT_HIGH_WATER',
+          message: `Prompt is near context limit (${promptTokens} tokens before completion).`,
+          context: { step: currentStep },
+        });
+      }
+
+      return { contextMessages: llmMessages, messages };
+    }
+
+    const finalPromptTokens = await this.promptTokenCounter.countMessages(llmMessages);
+    if (this.budgetManager.shouldCompactForPrompt(finalPromptTokens)) {
+      yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+        code: 'PROMPT_CONTEXT_STILL_HIGH',
+        message: `Prompt remains above compaction threshold (${finalPromptTokens} tokens).`,
+        context: { step: currentStep },
+      });
+    } else if (this.budgetManager.shouldWarnForPrompt(finalPromptTokens)) {
+      yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
+        code: 'PROMPT_CONTEXT_HIGH_WATER',
+        message: `Prompt is near context limit (${finalPromptTokens} tokens before completion).`,
+        context: { step: currentStep },
+      });
+    }
+
+    return { contextMessages: llmMessages, messages };
   }
 
   private async saveCheckpoint(
@@ -555,7 +892,7 @@ export class SingleAgentRunner implements AgentRunner {
   ): Extract<Event, { type: 'tool.result' }> {
     return this.createEvent(ctx, stepId, rootSpan, 'tool.result', {
       toolName,
-      result: result.result,
+      result: summarizeToolResultForEvent(result),
       isError: !result.success,
       ...(result.success
         ? {}
