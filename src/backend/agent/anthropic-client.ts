@@ -11,7 +11,12 @@ import type {
 } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
 import { LLMError } from '../../utils/errors.js';
-import type { ILLMClient, LLMCallOptions, LLMStreamChunk } from './llm-client.js';
+import {
+  sanitizeMessagesForLLM,
+  type ILLMClient,
+  type LLMCallOptions,
+  type LLMStreamChunk,
+} from './llm-client.js';
 
 const DEFAULT_BASE_URL = 'https://api.anthropic.com';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -69,7 +74,8 @@ export class AnthropicClient implements ILLMClient {
     messages: Message[],
     tools?: ToolDefinition[]
   ): Record<string, unknown> {
-    const { systemPrompt, conversationMessages } = this.extractSystemMessages(messages);
+    const sanitizedMessages = sanitizeMessagesForLLM(messages);
+    const { systemPrompt, conversationMessages } = this.extractSystemMessages(sanitizedMessages);
     const mappedMessages = this.mapMessages(conversationMessages);
 
     const body: Record<string, unknown> = {
@@ -113,65 +119,90 @@ export class AnthropicClient implements ILLMClient {
 
   private mapMessages(messages: Message[]): Array<Record<string, unknown>> {
     const result: Array<Record<string, unknown>> = [];
+    const toolUseIdMap = this.buildToolUseIdMap(messages);
 
     for (const msg of messages) {
       if (msg.role === 'tool') {
-        // Anthropic: tool results go as user messages with tool_result content blocks
+        const mappedToolUseId = msg.toolCallId ? toolUseIdMap.get(msg.toolCallId) : undefined;
+        if (!mappedToolUseId) {
+          continue;
+        }
+
+        // Anthropic expects tool_result blocks to reference a tool_use id from prior assistant content.
         const toolResultBlock = {
           type: 'tool_result',
-          tool_use_id: msg.toolCallId,
+          tool_use_id: mappedToolUseId,
           content: getMessageText(msg.content),
         };
 
-        // Merge consecutive tool results into one user message
         const last = result[result.length - 1];
-        if (last && last.role === 'user' && Array.isArray(last.content)) {
+        if (last && this.isToolResultOnlyUserMessage(last)) {
           (last.content as Array<Record<string, unknown>>).push(toolResultBlock);
         } else {
           result.push({ role: 'user', content: [toolResultBlock] });
         }
-      } else if (msg.role === 'assistant') {
+        continue;
+      }
+
+      if (msg.role === 'assistant') {
+        const contentBlocks: Array<Record<string, unknown>> = [];
+        const text = getMessageText(msg.content).trim();
+        if (text.length > 0 && text !== '(tool call)') {
+          contentBlocks.push({ type: 'text', text });
+        }
+
         if (msg.toolCalls && msg.toolCalls.length > 0) {
-          // Assistant message with tool calls -> content blocks
-          const contentBlocks: Array<Record<string, unknown>> = [];
-          const text = getMessageText(msg.content);
-          if (text) {
-            contentBlocks.push({ type: 'text', text });
-          }
           for (const tc of msg.toolCalls) {
+            const mappedId = toolUseIdMap.get(tc.id);
+            if (!mappedId) {
+              continue;
+            }
             contentBlocks.push({
               type: 'tool_use',
-              id: tc.id,
+              id: mappedId,
               name: tc.name,
               input: tc.parameters,
             });
           }
+        }
+
+        if (contentBlocks.length === 0) {
+          continue;
+        }
+
+        const hasToolUseBlock = contentBlocks.some((block) => block.type === 'tool_use');
+        if (!hasToolUseBlock && contentBlocks.length === 1 && contentBlocks[0]?.type === 'text') {
+          result.push({ role: 'assistant', content: contentBlocks[0].text });
+        } else {
           result.push({ role: 'assistant', content: contentBlocks });
-        } else {
-          result.push({ role: 'assistant', content: getMessageText(msg.content) });
         }
-      } else {
-        // user messages - handle multipart content
-        if (Array.isArray(msg.content)) {
-          const blocks: Array<Record<string, unknown>> = [];
-          for (const part of msg.content) {
-            if (part.type === 'text') {
+        continue;
+      }
+
+      // user messages - handle multipart content
+      if (Array.isArray(msg.content)) {
+        const blocks: Array<Record<string, unknown>> = [];
+        for (const part of msg.content) {
+          if (part.type === 'text') {
+            if (part.text.length > 0) {
               blocks.push({ type: 'text', text: part.text });
-            } else if (part.type === 'image') {
-              blocks.push({
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: part.image.mimeType,
-                  data: part.image.data,
-                },
-              });
             }
+          } else if (part.type === 'image') {
+            blocks.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: part.image.mimeType,
+                data: part.image.data,
+              },
+            });
           }
-          result.push({ role: 'user', content: blocks });
-        } else {
-          result.push({ role: 'user', content: msg.content });
         }
+        if (blocks.length > 0) {
+          result.push({ role: 'user', content: blocks });
+        }
+      } else if (msg.content.length > 0) {
+        result.push({ role: 'user', content: msg.content });
       }
     }
 
@@ -181,6 +212,52 @@ export class AnthropicClient implements ILLMClient {
     }
 
     return result;
+  }
+
+  private buildToolUseIdMap(messages: Message[]): Map<string, string> {
+    const idMap = new Map<string, string>();
+    const usedAnthropicIds = new Set<string>();
+    let generatedCounter = 0;
+
+    for (const msg of messages) {
+      if (msg.role !== 'assistant' || !msg.toolCalls || msg.toolCalls.length === 0) {
+        continue;
+      }
+
+      for (const tc of msg.toolCalls) {
+        if (idMap.has(tc.id)) {
+          continue;
+        }
+
+        let candidate = this.normalizeToolUseId(tc.id);
+        while (usedAnthropicIds.has(candidate)) {
+          generatedCounter += 1;
+          candidate = `toolu_${generatedCounter}`;
+        }
+
+        usedAnthropicIds.add(candidate);
+        idMap.set(tc.id, candidate);
+      }
+    }
+
+    return idMap;
+  }
+
+  private normalizeToolUseId(rawId: string): string {
+    if (/^toolu_[A-Za-z0-9_-]+$/.test(rawId)) {
+      return rawId;
+    }
+
+    const cleaned = rawId.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^_+/, '').slice(0, 48);
+    return cleaned.length > 0 ? `toolu_${cleaned}` : 'toolu_1';
+  }
+
+  private isToolResultOnlyUserMessage(message: Record<string, unknown>): boolean {
+    if (message.role !== 'user' || !Array.isArray(message.content)) {
+      return false;
+    }
+    const blocks = message.content as Array<Record<string, unknown>>;
+    return blocks.length > 0 && blocks.every((block) => block.type === 'tool_result');
   }
 
   private mapTool(tool: ToolDefinition): Record<string, unknown> {

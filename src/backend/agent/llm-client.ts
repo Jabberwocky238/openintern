@@ -52,6 +52,116 @@ export interface ILLMClient {
 }
 
 /**
+ * Sanitize messages before sending to providers.
+ * Prevents empty content blocks and orphaned tool messages that can trigger provider-side 400s.
+ */
+export function sanitizeMessagesForLLM(messages: Message[]): Message[] {
+  const normalized = messages.map((message) => sanitizeSingleMessage(message));
+  return repairToolCallIntegrity(normalized);
+}
+
+function sanitizeSingleMessage(message: Message): Message {
+  const sanitized: Message = { ...message };
+
+  if (typeof sanitized.content === 'string') {
+    if (sanitized.content.length === 0) {
+      sanitized.content = sanitized.role === 'assistant' && sanitized.toolCalls?.length
+        ? '(tool call)'
+        : '(empty)';
+    }
+  } else {
+    const filtered = sanitized.content.filter((part) => {
+      if (part.type !== 'text') {
+        return true;
+      }
+      return part.text.length > 0;
+    });
+
+    if (filtered.length === 0) {
+      sanitized.content = [{ type: 'text', text: '(empty)' }];
+    } else {
+      sanitized.content = filtered;
+    }
+  }
+
+  if (sanitized.role !== 'assistant' && sanitized.toolCalls !== undefined) {
+    delete sanitized.toolCalls;
+  }
+  if (sanitized.role !== 'tool' && sanitized.toolCallId !== undefined) {
+    delete sanitized.toolCallId;
+  }
+
+  if (sanitized.role === 'assistant' && sanitized.toolCalls) {
+    const validToolCalls = sanitized.toolCalls.filter(
+      (tc) => typeof tc.id === 'string' && tc.id.length > 0
+        && typeof tc.name === 'string' && tc.name.length > 0
+    );
+    sanitized.toolCalls = validToolCalls.length > 0 ? validToolCalls : undefined;
+  }
+
+  return sanitized;
+}
+
+/**
+ * Keep only valid assistant(tool_calls) <-> tool(toolCallId) pairs.
+ * This is a provider-agnostic guardrail against malformed call/result chains.
+ */
+function repairToolCallIntegrity(messages: Message[]): Message[] {
+  if (messages.length === 0) {
+    return messages;
+  }
+
+  const announced = new Set<string>();
+  const resolved = new Set<string>();
+
+  for (const msg of messages) {
+    if (msg.role === 'assistant' && msg.toolCalls) {
+      for (const tc of msg.toolCalls) {
+        announced.add(tc.id);
+      }
+      continue;
+    }
+    if (msg.role === 'tool' && msg.toolCallId && announced.has(msg.toolCallId)) {
+      resolved.add(msg.toolCallId);
+    }
+  }
+
+  const repaired: Message[] = [];
+  for (const msg of messages) {
+    if (msg.role === 'tool') {
+      if (msg.toolCallId && resolved.has(msg.toolCallId)) {
+        repaired.push(msg);
+      }
+      continue;
+    }
+
+    if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
+      const keptToolCalls = msg.toolCalls.filter((tc) => resolved.has(tc.id));
+      if (keptToolCalls.length === 0) {
+        if (hasMeaningfulTextContent(msg.content)) {
+          repaired.push({ ...msg, toolCalls: undefined });
+        }
+        continue;
+      }
+      repaired.push({ ...msg, toolCalls: keptToolCalls });
+      continue;
+    }
+
+    repaired.push(msg);
+  }
+
+  return repaired;
+}
+
+function hasMeaningfulTextContent(content: Message['content']): boolean {
+  if (typeof content === 'string') {
+    const trimmed = content.trim();
+    return trimmed.length > 0 && trimmed !== '(tool call)';
+  }
+  return content.some((part) => part.type === 'text' && part.text.trim().length > 0);
+}
+
+/**
  * Mock LLM response generator for testing
  */
 interface MockResponseConfig {

@@ -124,7 +124,7 @@ describe('AnthropicClient', () => {
       expect(msgs.every((m) => m.role !== 'system')).toBe(true);
     });
 
-    it('should map tool messages as user tool_result blocks', async () => {
+    it('should remap non-Anthropic tool IDs and keep tool_use/tool_result aligned', async () => {
       const mockResponse = {
         content: [{ type: 'text', text: 'Done' }],
         usage: { input_tokens: 20, output_tokens: 10 },
@@ -133,18 +133,29 @@ describe('AnthropicClient', () => {
 
       const messages: Message[] = [
         { role: 'user', content: 'Do something' },
-        { role: 'assistant', content: 'Calling tool' },
-        { role: 'tool', content: '{"result": "ok"}', toolCallId: 'tc_123' },
+        {
+          role: 'assistant',
+          content: 'Calling tool',
+          toolCalls: [{ id: 'call_function_abc_1', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: '{"result": "ok"}', toolCallId: 'call_function_abc_1' },
       ];
       await client.chat(messages);
 
       const body = getFetchBody();
       const msgs = body.messages as Array<Record<string, unknown>>;
+      const assistantMsg = msgs[1]!;
+      const assistantBlocks = assistantMsg.content as Array<Record<string, unknown>>;
+      const toolUseBlock = assistantBlocks.find((block) => block.type === 'tool_use');
+      expect(toolUseBlock).toBeDefined();
+      const mappedToolUseId = toolUseBlock?.id as string;
+      expect(mappedToolUseId.startsWith('toolu_')).toBe(true);
+
       const toolMsg = msgs[2]!;
       expect(toolMsg.role).toBe('user');
-      const content = toolMsg.content as Array<Record<string, unknown>>;
-      expect(content[0]!.type).toBe('tool_result');
-      expect(content[0]!.tool_use_id).toBe('tc_123');
+      const toolContent = toolMsg.content as Array<Record<string, unknown>>;
+      expect(toolContent[0]!.type).toBe('tool_result');
+      expect(toolContent[0]!.tool_use_id).toBe(mappedToolUseId);
     });
 
     it('should merge consecutive tool messages', async () => {
@@ -156,7 +167,14 @@ describe('AnthropicClient', () => {
 
       const messages: Message[] = [
         { role: 'user', content: 'Do something' },
-        { role: 'assistant', content: 'Calling tools' },
+        {
+          role: 'assistant',
+          content: 'Calling tools',
+          toolCalls: [
+            { id: 'tc_1', name: 'read_file', parameters: { path: 'a.md' } },
+            { id: 'tc_2', name: 'grep_files', parameters: { pattern: 'foo' } },
+          ],
+        },
         { role: 'tool', content: 'result1', toolCallId: 'tc_1' },
         { role: 'tool', content: 'result2', toolCallId: 'tc_2' },
       ];
@@ -166,6 +184,25 @@ describe('AnthropicClient', () => {
       const msgs = body.messages as Array<Record<string, unknown>>;
       expect(msgs).toHaveLength(3);
       expect(msgs[2]!.content as unknown[]).toHaveLength(2);
+    });
+
+    it('should drop orphan tool messages without matching assistant tool_use', async () => {
+      const mockResponse = {
+        content: [{ type: 'text', text: 'Done' }],
+        usage: { input_tokens: 20, output_tokens: 10 },
+      };
+      globalThis.fetch = mockFetchResponse(mockResponse);
+
+      const messages: Message[] = [
+        { role: 'user', content: 'Do something' },
+        { role: 'tool', content: 'orphan-result', toolCallId: 'tc_orphan' },
+      ];
+      await client.chat(messages);
+
+      const body = getFetchBody();
+      const msgs = body.messages as Array<Record<string, unknown>>;
+      expect(msgs).toHaveLength(1);
+      expect(msgs[0]!.role).toBe('user');
     });
 
     it('should ensure first message is user role', async () => {

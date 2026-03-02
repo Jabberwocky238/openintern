@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MockLLMClient, createLLMClient } from './llm-client.js';
+import { MockLLMClient, createLLMClient, sanitizeMessagesForLLM } from './llm-client.js';
 import { OpenAIClient } from './openai-client.js';
 import { AnthropicClient } from './anthropic-client.js';
 import type { Message, ToolDefinition } from '../../types/agent.js';
@@ -57,6 +57,78 @@ describe('MockLLMClient', () => {
 
     client.resetCallCount();
     expect(client.getCallCount()).toBe(0);
+  });
+});
+
+describe('sanitizeMessagesForLLM', () => {
+  it('replaces empty string content with placeholders', () => {
+    const messages: Message[] = [
+      { role: 'user', content: '' },
+      { role: 'assistant', content: '', toolCalls: [{ id: 'tc_1', name: 'read_file', parameters: { path: 'a' } }] },
+      { role: 'tool', content: '{"ok":true}', toolCallId: 'tc_1' },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(sanitized[0]?.content).toBe('(empty)');
+    expect(sanitized[1]?.content).toBe('(tool call)');
+  });
+
+  it('removes empty text blocks but preserves images', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: '' },
+          { type: 'image', image: { data: 'abc', mimeType: 'image/png' } },
+        ],
+      },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(Array.isArray(sanitized[0]?.content)).toBe(true);
+    const parts = sanitized[0]?.content as Message['content'];
+    if (Array.isArray(parts)) {
+      expect(parts).toHaveLength(1);
+      expect(parts[0]?.type).toBe('image');
+    }
+  });
+
+  it('drops orphan tool messages and unresolved assistant tool calls', () => {
+    const messages: Message[] = [
+      {
+        role: 'assistant',
+        content: '',
+        toolCalls: [{ id: 'tc_orphan', name: 'read_file', parameters: { path: 'a.md' } }],
+      },
+      { role: 'tool', content: '{"ok":true}', toolCallId: 'tc_missing' },
+      {
+        role: 'assistant',
+        content: 'final summary',
+      },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(sanitized).toHaveLength(1);
+    expect(sanitized[0]?.role).toBe('assistant');
+    expect(sanitized[0]?.content).toBe('final summary');
+  });
+
+  it('keeps valid assistant/tool call pairs', () => {
+    const messages: Message[] = [
+      {
+        role: 'assistant',
+        content: 'running tool',
+        toolCalls: [{ id: 'tc_1', name: 'grep_files', parameters: { pattern: 'foo' } }],
+      },
+      { role: 'tool', content: '{"matches":[]}', toolCallId: 'tc_1' },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(sanitized).toHaveLength(2);
+    expect(sanitized[0]?.role).toBe('assistant');
+    expect(sanitized[0]?.toolCalls?.[0]?.id).toBe('tc_1');
+    expect(sanitized[1]?.role).toBe('tool');
+    expect(sanitized[1]?.toolCallId).toBe('tc_1');
   });
 });
 
