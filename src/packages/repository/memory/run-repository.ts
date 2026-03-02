@@ -7,7 +7,7 @@ import type {
   RunCreateInput,
   RunRecord,
 } from '../../../backend/runtime/models.js';
-import type { ScopeContext } from '../../shared/scope.js';
+import type { ScopeContext } from '../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 import { clone, matchesScope, nowIso } from './helpers.js';
 import { resolveMessageType, toMeta } from './run-repository-helpers.js';
@@ -195,6 +195,7 @@ export class RunRepository extends RunRepositoryStorageBase implements IRunRepos
     return { items, nextCursor };
   }
 }
+
 
 
 

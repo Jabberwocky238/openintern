@@ -42,6 +42,7 @@ import {
   PlanRepository,
   RoleRepository,
   RunRepository,
+  runPostgresMigrations,
   type IPostgresPool,
 } from '@openintern/repository';
 import { GroupRepository } from '@openintern/repository';
@@ -54,7 +55,7 @@ import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js
 import { MineruClient } from './runtime/integrations/mineru/client.js';
 import { MineruIngestService } from './runtime/integrations/mineru/ingest-service.js';
 import { UploadService } from './runtime/upload-service.js';
-import { closeSharedPostgresPool, getPostgresPool, runPostgresMigrations } from './db/index.js';
+import { closeSharedPostgresPool, getPostgresPool } from '../packages/repository/postgres/index.js';
 
 /**
  * Server configuration

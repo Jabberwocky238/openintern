@@ -1,4 +1,4 @@
-import type { ScopeContext } from '../../shared/scope.js';
+import type { ScopeContext } from '../shared/scope.js';
 
 export function nowIso(): string {
   return new Date().toISOString();
@@ -29,5 +29,6 @@ export function durationMs(startedAt: string | null, endedAt: string | null): nu
   }
   return new Date(endedAt).getTime() - new Date(startedAt).getTime();
 }
+
 
 

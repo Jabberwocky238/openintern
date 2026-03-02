@@ -19,6 +19,7 @@
   "include": [
     "./index.ts",
     "./interfaces/**/*.ts",
+    "./shared/**/*.ts",
     "./memory/**/*.ts",
     "./postgres/**/*.ts"
   ],

@@ -12,7 +12,7 @@ import type {
   RunRecord,
   RunStatus,
 } from '../../../backend/runtime/models.js';
-import { appendScopePredicate, type ScopeContext } from '../../shared/scope.js';
+import { appendScopePredicate, type ScopeContext } from '../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 
 interface RunRow {
@@ -867,6 +867,7 @@ export class RunRepository implements IRunRepository {
     return row ? mapDepRow(row) : null;
   }
 }
+
 
 
 

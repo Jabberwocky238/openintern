@@ -37,6 +37,8 @@ export type {
   CreateFeishuSyncJobInput,
   UpsertFeishuSourceStateInput,
 } from './interfaces/feishu-repository.js';
+import { logger } from '@openintern/utils';
+import type { IPostgresPool } from './interfaces/postgres-client.js';
 
 import * as memoryRepository from './memory/index.js';
 import * as postgresRepository from './postgres/index.js';
@@ -60,6 +62,17 @@ const selectedRepository: RepositoryModule =
 
 export const OPENINTERN_REPOSITORY_DEV_TYPE = repositoryDevType;
 export default selectedRepository;
+
+const MEMORY_MODE_MIGRATION_WARNING =
+  'Repository mode is memory; skipping Postgres migrations.';
+
+export async function runPostgresMigrations(pool: IPostgresPool): Promise<void> {
+  if (repositoryDevType === 'memory') {
+    logger.warn(MEMORY_MODE_MIGRATION_WARNING);
+    return;
+  }
+  await postgresRepository.runPostgresMigrations(pool);
+}
 
 export const {
   RunRepository,

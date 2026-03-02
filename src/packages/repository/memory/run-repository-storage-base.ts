@@ -1,6 +1,6 @@
 import type { Event } from '../../../types/events.js';
 import type { RunDependency } from '../../../backend/runtime/models.js';
-import type { ScopeContext } from '../../shared/scope.js';
+import type { ScopeContext } from '../shared/scope.js';
 import type { RunMessageRecord } from '../interfaces/run-repository.js';
 import type { IPostgresClient } from '../interfaces/postgres-client.js';
 import { clone, matchesScope, nowIso } from './helpers.js';
@@ -171,5 +171,6 @@ export abstract class RunRepositoryStorageBase {
     return this.store.events.filter((row) => row.event.run_id === runId).map((row) => row.event);
   }
 }
+
 
 

@@ -8,7 +8,7 @@ import type {
   RunDependency,
   RunRecord,
 } from '../../../backend/runtime/models.js';
-import type { ScopeContext } from '../../shared/scope.js';
+import type { ScopeContext } from '../shared/scope.js';
 
 export interface RunMessageRecord {
   role: string;
@@ -99,5 +99,6 @@ export interface IRunRepository {
 }
 
 export type { DelegatedPermissions };
+
 
 

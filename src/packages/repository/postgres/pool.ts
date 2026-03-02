@@ -1,6 +1,7 @@
 import { Pool, type PoolClient, type PoolConfig, type QueryResult } from 'pg';
 import { logger } from '@openintern/utils';
 import { POSTGRES_SCHEMA_STATEMENTS } from './schema.js';
+import type { IPostgresPool } from '../interfaces/postgres-client.js';
 
 export interface PostgresOptions {
   connectionString?: string;
@@ -56,7 +57,7 @@ export function getPostgresPool(options: PostgresOptions = {}): Pool {
   return sharedPool;
 }
 
-export async function runPostgresMigrations(pool: Pool): Promise<void> {
+export async function runPostgresMigrations(pool: IPostgresPool): Promise<void> {
   if (migrationPromise) {
     return migrationPromise;
   }
