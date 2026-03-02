@@ -57,7 +57,8 @@ export interface ILLMClient {
  */
 export function sanitizeMessagesForLLM(messages: Message[]): Message[] {
   const normalized = messages.map((message) => sanitizeSingleMessage(message));
-  return repairToolCallIntegrity(normalized);
+  const repaired = repairToolCallIntegrity(normalized);
+  return alignToConversationStart(repaired);
 }
 
 function sanitizeSingleMessage(message: Message): Message {
@@ -111,46 +112,123 @@ function repairToolCallIntegrity(messages: Message[]): Message[] {
     return messages;
   }
 
-  const announced = new Set<string>();
-  const resolved = new Set<string>();
-
-  for (const msg of messages) {
-    if (msg.role === 'assistant' && msg.toolCalls) {
-      for (const tc of msg.toolCalls) {
-        announced.add(tc.id);
-      }
-      continue;
-    }
-    if (msg.role === 'tool' && msg.toolCallId && announced.has(msg.toolCallId)) {
-      resolved.add(msg.toolCallId);
-    }
-  }
-
+  const pendingById = new Map<string, number>();
+  const resolvedByAssistantIndex = new Map<number, Set<string>>();
   const repaired: Message[] = [];
+
   for (const msg of messages) {
     if (msg.role === 'tool') {
-      if (msg.toolCallId && resolved.has(msg.toolCallId)) {
-        repaired.push(msg);
+      const toolCallId = msg.toolCallId;
+      if (!toolCallId) {
+        continue;
       }
+      const ownerIndex = pendingById.get(toolCallId);
+      if (ownerIndex === undefined) {
+        continue;
+      }
+
+      let resolvedIds = resolvedByAssistantIndex.get(ownerIndex);
+      if (!resolvedIds) {
+        resolvedIds = new Set<string>();
+        resolvedByAssistantIndex.set(ownerIndex, resolvedIds);
+      }
+      resolvedIds.add(toolCallId);
+      pendingById.delete(toolCallId);
+      repaired.push(msg);
       continue;
     }
 
     if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
-      const keptToolCalls = msg.toolCalls.filter((tc) => resolved.has(tc.id));
-      if (keptToolCalls.length === 0) {
+      const dedupedToolCalls: ToolCall[] = [];
+      const seenToolCallIds = new Set<string>();
+      for (const toolCall of msg.toolCalls) {
+        if (seenToolCallIds.has(toolCall.id)) {
+          continue;
+        }
+        seenToolCallIds.add(toolCall.id);
+        dedupedToolCalls.push(toolCall);
+      }
+
+      if (dedupedToolCalls.length === 0) {
         if (hasMeaningfulTextContent(msg.content)) {
-          repaired.push({ ...msg, toolCalls: undefined });
+          repaired.push({
+            ...msg,
+            toolCalls: undefined,
+          });
         }
         continue;
       }
-      repaired.push({ ...msg, toolCalls: keptToolCalls });
+
+      const assistantIndex = repaired.length;
+      repaired.push({
+        ...msg,
+        toolCalls: dedupedToolCalls,
+      });
+      for (const toolCall of dedupedToolCalls) {
+        pendingById.set(toolCall.id, assistantIndex);
+      }
       continue;
     }
 
     repaired.push(msg);
   }
 
-  return repaired;
+  const finalized: Message[] = [];
+  for (let index = 0; index < repaired.length; index += 1) {
+    const msg = repaired[index]!;
+    if (msg.role !== 'assistant' || !msg.toolCalls || msg.toolCalls.length === 0) {
+      finalized.push(msg);
+      continue;
+    }
+
+    const resolvedIds = resolvedByAssistantIndex.get(index);
+    if (!resolvedIds || resolvedIds.size === 0) {
+      if (hasMeaningfulTextContent(msg.content)) {
+        finalized.push({ ...msg, toolCalls: undefined });
+      }
+      continue;
+    }
+
+    const keptToolCalls = msg.toolCalls.filter((toolCall) => resolvedIds.has(toolCall.id));
+    if (keptToolCalls.length === 0) {
+      if (hasMeaningfulTextContent(msg.content)) {
+        finalized.push({ ...msg, toolCalls: undefined });
+      }
+      continue;
+    }
+
+    finalized.push({
+      ...msg,
+      toolCalls: keptToolCalls,
+    });
+  }
+
+  return finalized;
+}
+
+function alignToConversationStart(messages: Message[]): Message[] {
+  if (messages.length === 0) {
+    return messages;
+  }
+
+  const aligned: Message[] = [];
+  let cursor = 0;
+  while (cursor < messages.length && messages[cursor]!.role === 'system') {
+    aligned.push(messages[cursor]!);
+    cursor += 1;
+  }
+
+  const firstUserOffset = messages
+    .slice(cursor)
+    .findIndex((message) => message.role === 'user');
+  if (firstUserOffset < 0) {
+    return messages;
+  }
+
+  return [
+    ...aligned,
+    ...messages.slice(cursor + firstUserOffset),
+  ];
 }
 
 function hasMeaningfulTextContent(content: Message['content']): boolean {

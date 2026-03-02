@@ -130,6 +130,39 @@ describe('sanitizeMessagesForLLM', () => {
     expect(sanitized[1]?.role).toBe('tool');
     expect(sanitized[1]?.toolCallId).toBe('tc_1');
   });
+
+  it('drops out-of-order tool results that appear before tool calls', () => {
+    const messages: Message[] = [
+      { role: 'user', content: 'question' },
+      { role: 'tool', content: '{"ok":true}', toolCallId: 'tc_1' },
+      {
+        role: 'assistant',
+        content: '',
+        toolCalls: [{ id: 'tc_1', name: 'read_file', parameters: { path: 'a.md' } }],
+      },
+      { role: 'assistant', content: 'final summary' },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(sanitized.some((message) => message.role === 'tool')).toBe(false);
+    expect(sanitized.some((message) => message.role === 'assistant' && message.toolCalls?.length)).toBe(false);
+    expect(sanitized[sanitized.length - 1]?.content).toBe('final summary');
+  });
+
+  it('aligns history to first user turn after system messages', () => {
+    const messages: Message[] = [
+      { role: 'system', content: 'sys prompt' },
+      { role: 'assistant', content: 'leftover assistant' },
+      { role: 'tool', content: '{"stale":true}', toolCallId: 'tc_old' },
+      { role: 'user', content: 'current question' },
+    ];
+
+    const sanitized = sanitizeMessagesForLLM(messages);
+    expect(sanitized).toHaveLength(2);
+    expect(sanitized[0]?.role).toBe('system');
+    expect(sanitized[1]?.role).toBe('user');
+    expect(sanitized[1]?.content).toBe('current question');
+  });
 });
 
 describe('MockLLMClient with tools', () => {
