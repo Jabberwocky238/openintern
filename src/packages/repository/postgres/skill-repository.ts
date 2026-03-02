@@ -1,7 +1,7 @@
 import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { Skill, CreateSkill } from '../../../types/skill.js';
-import { generateSkillId } from '../../../utils/ids.js';
-import { NotFoundError } from '../../../utils/errors.js';
+import { generateSkillId } from '@openintern/utils';
+import { NotFoundError } from '@openintern/utils';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';
 
 interface SkillRow {
@@ -100,5 +100,6 @@ export class SkillRepository implements ISkillRepository {
     return (result.rowCount ?? 0) > 0;
   }
 }
+
 
 

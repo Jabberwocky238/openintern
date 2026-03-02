@@ -6,5 +6,5 @@ export {
   query,
   withTransaction,
   type PostgresOptions,
-} from '../repository/postgres/index.js';
+} from '../../packages/repository/postgres/index.js';
 

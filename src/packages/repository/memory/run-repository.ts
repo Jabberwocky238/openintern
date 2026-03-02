@@ -1,13 +1,13 @@
 import type { Event } from '../../../types/events.js';
 import type { RunMeta } from '../../../types/run.js';
-import { NotFoundError } from '../../../utils/errors.js';
+import { NotFoundError } from '@openintern/utils';
 import type {
   DelegatedPermissions,
   EventCursorPage,
   RunCreateInput,
   RunRecord,
-} from '../../runtime/models.js';
-import type { ScopeContext } from '../../runtime/scope.js';
+} from '../../../backend/runtime/models.js';
+import type { ScopeContext } from '../../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 import { clone, matchesScope, nowIso } from './helpers.js';
 import { resolveMessageType, toMeta } from './run-repository-helpers.js';
@@ -195,4 +195,6 @@ export class RunRepository extends RunRepositoryStorageBase implements IRunRepos
     return { items, nextCursor };
   }
 }
+
+
 

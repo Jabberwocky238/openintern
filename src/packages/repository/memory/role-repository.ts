@@ -1,6 +1,6 @@
 import type { CreateRole, Role } from '../../../types/orchestrator.js';
-import { NotFoundError } from '../../../utils/errors.js';
-import { generateRoleId } from '../../../utils/ids.js';
+import { NotFoundError } from '@openintern/utils';
+import { generateRoleId } from '@openintern/utils';
 import type { IRoleRepository } from '../interfaces/role-repository.js';
 import { clone, nowIso } from './helpers.js';
 import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
@@ -90,4 +90,5 @@ export class RoleRepository implements IRoleRepository {
     return { group_count: groups.length, groups };
   }
 }
+
 

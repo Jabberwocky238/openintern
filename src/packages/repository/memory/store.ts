@@ -1,5 +1,5 @@
 import type { Event } from '../../../types/events.js';
-import type { PlanRecord, PlanTaskRecord, RunDependency, RunRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord, RunDependency, RunRecord } from '../../../backend/runtime/models.js';
 import type { Group, GroupMember, Role } from '../../../types/orchestrator.js';
 import type { Skill } from '../../../types/skill.js';
 import type { PluginJobRowView, PluginKvRowView, PluginRowView } from '../interfaces/plugin-repository.js';

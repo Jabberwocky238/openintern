@@ -6,8 +6,8 @@ import type {
   FeishuSyncStats,
   FeishuSyncTrigger,
 } from '../../../types/feishu.js';
-import { NotFoundError } from '../../../utils/errors.js';
-import { generatePluginId, generatePluginJobId } from '../../../utils/ids.js';
+import { NotFoundError } from '@openintern/utils';
+import { generatePluginId, generatePluginJobId } from '@openintern/utils';
 import type { IFeishuRepository } from '../interfaces/feishu-repository.js';
 import type { PluginJobRow, PluginKvRow, PluginRow } from './plugin-repository.js';
 import { PluginRepository } from './plugin-repository.js';
@@ -253,4 +253,5 @@ export class FeishuRepository implements IFeishuRepository {
     });
   }
 }
+
 

@@ -1,7 +1,7 @@
 import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
 import type { LLMConfigRequest } from '../../../types/api.js';
 import type { RunMeta } from '../../../types/run.js';
-import { NotFoundError } from '../../../utils/errors.js';
+import { NotFoundError } from '@openintern/utils';
 import type { Event } from '../../../types/events.js';
 import type {
   DelegatedPermissions,
@@ -11,8 +11,8 @@ import type {
   RunMode,
   RunRecord,
   RunStatus,
-} from '../../runtime/models.js';
-import { appendScopePredicate, type ScopeContext } from '../../runtime/scope.js';
+} from '../../../backend/runtime/models.js';
+import { appendScopePredicate, type ScopeContext } from '../../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 
 interface RunRow {
@@ -867,5 +867,7 @@ export class RunRepository implements IRunRepository {
     return row ? mapDepRow(row) : null;
   }
 }
+
+
 
 

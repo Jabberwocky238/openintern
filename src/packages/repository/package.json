@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit --project ./tsconfig.json"
   },
   "dependencies": {
+    "@openintern/utils": "file:../../utils",
     "pg": "^8.16.3"
   },
   "devDependencies": {
@@ -28,4 +29,3 @@
     "zod": "^3.22.0"
   }
 }
-

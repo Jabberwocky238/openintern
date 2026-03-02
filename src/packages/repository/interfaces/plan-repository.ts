@@ -1,4 +1,4 @@
-import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord } from '../../../backend/runtime/models.js';
 
 export interface CreatePlanTaskInput {
   taskId: string;

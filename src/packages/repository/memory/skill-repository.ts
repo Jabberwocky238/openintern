@@ -1,6 +1,6 @@
 import type { CreateSkill, Skill } from '../../../types/skill.js';
-import { NotFoundError } from '../../../utils/errors.js';
-import { generateSkillId } from '../../../utils/ids.js';
+import { NotFoundError } from '@openintern/utils';
+import { generateSkillId } from '@openintern/utils';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';
 import { clone, nowIso } from './helpers.js';
 import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
@@ -67,4 +67,5 @@ export class SkillRepository implements ISkillRepository {
     return this.store.skills.delete(id);
   }
 }
+
 

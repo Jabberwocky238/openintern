@@ -1,6 +1,6 @@
 import { Pool, type PoolClient, type PoolConfig, type QueryResult } from 'pg';
-import { logger } from '../../../utils/logger.js';
-import { POSTGRES_SCHEMA_STATEMENTS } from '../../db/schema.js';
+import { logger } from '@openintern/utils';
+import { POSTGRES_SCHEMA_STATEMENTS } from './schema.js';
 
 export interface PostgresOptions {
   connectionString?: string;
@@ -120,5 +120,7 @@ export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>,
     client.release();
   }
 }
+
+
 
 

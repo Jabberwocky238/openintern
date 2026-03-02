@@ -40,8 +40,11 @@ importers:
         version: 3.25.76
     devDependencies:
       '@openintern/repository':
-        specifier: file:./src/backend/repository
-        version: file:src/backend/repository
+        specifier: file:./src/packages/repository
+        version: file:src/packages/repository
+      '@openintern/utils':
+        specifier: file:./src/utils
+        version: file:src/utils
       '@types/busboy':
         specifier: ^1.5.4
         version: 1.5.4
@@ -436,8 +439,11 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@openintern/repository@file:src/backend/repository':
-    resolution: {directory: src/backend/repository, type: directory}
+  '@openintern/repository@file:src/packages/repository':
+    resolution: {directory: src/packages/repository, type: directory}
+
+  '@openintern/utils@file:src/utils':
+    resolution: {directory: src/utils, type: directory}
 
   '@paralleldrive/cuid2@2.3.1':
     resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
@@ -2035,11 +2041,14 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@openintern/repository@file:src/backend/repository':
+  '@openintern/repository@file:src/packages/repository':
     dependencies:
+      '@openintern/utils': file:src/utils
       pg: 8.18.0
     transitivePeerDependencies:
       - pg-native
+
+  '@openintern/utils@file:src/utils': {}
 
   '@paralleldrive/cuid2@2.3.1':
     dependencies:

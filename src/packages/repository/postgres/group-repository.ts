@@ -1,7 +1,7 @@
 import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { Group, CreateGroup, GroupMember, AddMember } from '../../../types/orchestrator.js';
-import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '../../../utils/ids.js';
-import { NotFoundError } from '../../../utils/errors.js';
+import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '@openintern/utils';
+import { NotFoundError } from '@openintern/utils';
 import type { IGroupRepository } from '../interfaces/group-repository.js';
 
 interface GroupRow {
@@ -381,4 +381,5 @@ export class GroupRepository implements IGroupRepository {
     });
   }
 }
+
 

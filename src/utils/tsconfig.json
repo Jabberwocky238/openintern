@@ -14,14 +14,15 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@openintern/repository": ["src/packages/repository/index.ts"],
-      "@openintern/utils": ["src/utils/index.ts"]
-    }
+    "exactOptionalPropertyTypes": true
   },
-  "include": ["src/**/*"],
+  "include": [
+    "./index.ts",
+    "./errors.ts",
+    "./ids.ts",
+    "./logger.ts",
+    "./redact.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
+

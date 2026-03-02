@@ -1,4 +1,4 @@
-import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord } from '../../../backend/runtime/models.js';
 import type { CreatePlanInput, IPlanRepository, TaskDispatchInput } from '../interfaces/plan-repository.js';
 import { clone, nowIso } from './helpers.js';
 import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';

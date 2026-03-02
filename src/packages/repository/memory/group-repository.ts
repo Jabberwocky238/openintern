@@ -1,6 +1,6 @@
 import type { AddMember, CreateGroup, Group, GroupMember } from '../../../types/orchestrator.js';
-import { NotFoundError } from '../../../utils/errors.js';
-import { generateAgentInstanceId, generateGroupId, generateGroupMemberId } from '../../../utils/ids.js';
+import { NotFoundError } from '@openintern/utils';
+import { generateAgentInstanceId, generateGroupId, generateGroupMemberId } from '@openintern/utils';
 import type { IGroupRepository } from '../interfaces/group-repository.js';
 import { clone, durationMs, nowIso } from './helpers.js';
 import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
@@ -215,4 +215,5 @@ export class GroupRepository implements IGroupRepository {
     }));
   }
 }
+
 
