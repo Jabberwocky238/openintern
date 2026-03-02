@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { loadConfig, clearConfigCache, toLLMConfig } from './loader.js';
+import { loadConfig, clearConfigCache, toLLMConfig, toPlannerLLMConfig } from './loader.js';
 import type { AgentConfig } from '../types/agent.js';
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
@@ -24,6 +24,8 @@ const ENV_KEYS = [
   'LLM_TEMPERATURE', 'LLM_MAX_TOKENS',
   'OPENAI_API_KEY', 'ANTHROPIC_API_KEY',
   'OPENAI_BASE_URL', 'ANTHROPIC_BASE_URL',
+  'PLANNER_LLM_PROVIDER', 'PLANNER_LLM_MODEL', 'PLANNER_LLM_BASE_URL', 'PLANNER_LLM_API_KEY',
+  'PLANNER_LLM_TEMPERATURE', 'PLANNER_LLM_MAX_TOKENS',
   'PORT', 'DATA_DIR',
   'FEISHU_ENABLED', 'FEISHU_APP_ID', 'FEISHU_APP_SECRET', 'FEISHU_BASE_URL',
   'FEISHU_TIMEOUT_MS', 'FEISHU_MAX_RETRIES', 'FEISHU_POLL_INTERVAL_MS',
@@ -103,6 +105,18 @@ describe('loadConfig', () => {
 
     expect(config.server?.port).toBe(9090);
     expect(config.server?.baseDir).toBe('/custom/data');
+  });
+
+  it('should apply planner LLM env var overrides', async () => {
+    process.env['PLANNER_LLM_PROVIDER'] = 'anthropic';
+    process.env['PLANNER_LLM_MODEL'] = 'claude-sonnet-4-20250514';
+    process.env['PLANNER_LLM_TEMPERATURE'] = '0';
+
+    const config = await loadConfig('/tmp/test');
+
+    expect(config.planner?.llm?.provider).toBe('anthropic');
+    expect(config.planner?.llm?.model).toBe('claude-sonnet-4-20250514');
+    expect(config.planner?.llm?.temperature).toBe(0);
   });
 
   it('should apply Feishu env var overrides', async () => {
@@ -255,5 +269,15 @@ describe('toLLMConfig', () => {
 
     expect(result?.provider).toBe('gemini');
     expect(result?.model).toBe('gemini-3-pro-preview');
+  });
+
+  it('should convert AgentConfig.planner.llm to LLMConfig', () => {
+    const result = toPlannerLLMConfig({
+      planner: { llm: { provider: 'openai', model: 'gpt-4o-mini', temperature: 0 } },
+    });
+
+    expect(result?.provider).toBe('openai');
+    expect(result?.model).toBe('gpt-4o-mini');
+    expect(result?.temperature).toBe(0);
   });
 });

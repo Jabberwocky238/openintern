@@ -12,11 +12,14 @@ export type RunStatus =
   | 'failed'
   | 'cancelled';
 
+export type RunMode = 'single' | 'group' | 'plan_execute';
+
 // Run metadata
 export interface RunMeta {
   run_id: string;
   session_key: string;
   status: RunStatus;
+  run_mode?: RunMode;
   started_at: string;
   ended_at: string | null;
   duration_ms: number | null;

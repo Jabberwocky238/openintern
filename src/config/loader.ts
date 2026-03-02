@@ -85,6 +85,12 @@ function applyEnvOverrides(config: AgentConfig): AgentConfig {
   const envMaxTokens = process.env['LLM_MAX_TOKENS'];
   const envOpenAIBaseUrl = process.env['OPENAI_BASE_URL'];
   const envAnthropicBaseUrl = process.env['ANTHROPIC_BASE_URL'];
+  const envPlannerProvider = process.env['PLANNER_LLM_PROVIDER'];
+  const envPlannerModel = process.env['PLANNER_LLM_MODEL'];
+  const envPlannerBaseUrl = process.env['PLANNER_LLM_BASE_URL'];
+  const envPlannerApiKey = process.env['PLANNER_LLM_API_KEY'];
+  const envPlannerTemp = process.env['PLANNER_LLM_TEMPERATURE'];
+  const envPlannerMaxTokens = process.env['PLANNER_LLM_MAX_TOKENS'];
 
   if (
     envProvider ||
@@ -103,6 +109,27 @@ function applyEnvOverrides(config: AgentConfig): AgentConfig {
     if (envApiKey) result.llm.apiKey = envApiKey;
     if (envTemp) result.llm.temperature = parseFloat(envTemp);
     if (envMaxTokens) result.llm.maxTokens = parseInt(envMaxTokens, 10);
+  }
+
+  // Planner LLM env overrides
+  if (
+    envPlannerProvider ||
+    envPlannerModel ||
+    envPlannerBaseUrl ||
+    envPlannerApiKey ||
+    envPlannerTemp ||
+    envPlannerMaxTokens
+  ) {
+    if (!result.planner) result.planner = {};
+    if (!result.planner.llm) result.planner.llm = {};
+    if (envPlannerProvider) {
+      result.planner.llm.provider = envPlannerProvider as 'openai' | 'anthropic' | 'gemini' | 'mock';
+    }
+    if (envPlannerModel) result.planner.llm.model = envPlannerModel;
+    if (envPlannerBaseUrl) result.planner.llm.baseUrl = envPlannerBaseUrl;
+    if (envPlannerApiKey) result.planner.llm.apiKey = envPlannerApiKey;
+    if (envPlannerTemp) result.planner.llm.temperature = parseFloat(envPlannerTemp);
+    if (envPlannerMaxTokens) result.planner.llm.maxTokens = parseInt(envPlannerMaxTokens, 10);
   }
 
   // Legacy API key env vars (lower priority than LLM_API_KEY)
@@ -342,10 +369,11 @@ export function clearConfigCache(): void {
 }
 
 /**
- * Convert AgentConfig.llm to LLMConfig
+ * Convert an AgentConfig llm-like section to LLMConfig
  */
-export function toLLMConfig(config: AgentConfig): LLMConfig | undefined {
-  const llm = config.llm;
+function toLLMConfigSection(
+  llm: AgentConfig['llm'] | undefined
+): LLMConfig | undefined {
   if (!llm || !llm.provider) return undefined;
 
   const result: LLMConfig = {
@@ -363,4 +391,18 @@ export function toLLMConfig(config: AgentConfig): LLMConfig | undefined {
   if (llm.temperature !== undefined) result.temperature = llm.temperature;
   if (llm.maxTokens !== undefined) result.maxTokens = llm.maxTokens;
   return result;
+}
+
+/**
+ * Convert AgentConfig.llm to runtime LLMConfig
+ */
+export function toLLMConfig(config: AgentConfig): LLMConfig | undefined {
+  return toLLMConfigSection(config.llm);
+}
+
+/**
+ * Convert AgentConfig.planner.llm to runtime LLMConfig
+ */
+export function toPlannerLLMConfig(config: AgentConfig): LLMConfig | undefined {
+  return toLLMConfigSection(config.planner?.llm as AgentConfig['llm'] | undefined);
 }

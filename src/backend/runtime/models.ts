@@ -2,6 +2,7 @@ import type { LLMConfigRequest } from '../../types/api.js';
 import type { ScopeContext } from './scope.js';
 
 export type RunStatus = 'pending' | 'running' | 'waiting' | 'suspended' | 'completed' | 'failed' | 'cancelled';
+export type RunMode = 'single' | 'group' | 'plan_execute';
 
 /**
  * Permissions delegated from a parent PA run to a child group run.
@@ -21,6 +22,7 @@ export interface RunRecord {
   sessionKey: string;
   input: string;
   status: RunStatus;
+  runMode?: RunMode;
   agentId: string;
   llmConfig: LLMConfigRequest | null;
   result: Record<string, unknown> | null;
@@ -41,6 +43,7 @@ export interface RunCreateInput {
   sessionKey: string;
   input: string;
   agentId: string;
+  runMode?: RunMode;
   groupId?: string;
   llmConfig: LLMConfigRequest | null;
   parentRunId?: string;
@@ -64,4 +67,35 @@ export interface RunDependency {
   error: string | null;
   createdAt: string;
   completedAt: string | null;
+}
+
+export interface PlanRecord {
+  id: number;
+  runId: string;
+  plannerModel: string;
+  status: 'planned' | 'running' | 'completed' | 'failed';
+  rawPlan: Record<string, unknown>;
+  failureReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlanTaskRecord {
+  id: number;
+  planId: number;
+  runId: string;
+  taskId: string;
+  task: string;
+  roleId: string;
+  dependsOn: string[];
+  layerIndex: number;
+  status: 'planned' | 'running' | 'completed' | 'failed';
+  context: string | null;
+  acceptance: string | null;
+  childRunId: string | null;
+  toolCallId: string | null;
+  output: string | null;
+  error: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

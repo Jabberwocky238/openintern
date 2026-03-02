@@ -16,6 +16,17 @@ export const RunStatusSchema = z.enum([
 export type RunStatus = z.infer<typeof RunStatusSchema>;
 
 /**
+ * Run mode enum
+ */
+export const RunModeSchema = z.enum([
+  'single',
+  'group',
+  'plan_execute',
+]);
+
+export type RunMode = z.infer<typeof RunModeSchema>;
+
+/**
  * Run metadata schema - for fast UI loading
  */
 export const RunMetaSchema = z.object({
@@ -25,6 +36,8 @@ export const RunMetaSchema = z.object({
   session_key: z.string().regex(/^s_[a-zA-Z0-9_]+$/),
   /** Run status */
   status: RunStatusSchema,
+  /** Execution mode for this run */
+  run_mode: RunModeSchema.optional(),
   /** Run start timestamp */
   started_at: z.string().datetime(),
   /** Run end timestamp (null if still running) */

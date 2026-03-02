@@ -244,6 +244,16 @@ export interface AgentConfig {
     temperature?: number;
     maxTokens?: number;
   };
+  planner?: {
+    llm?: {
+      provider?: 'openai' | 'anthropic' | 'gemini' | 'mock';
+      model?: string;
+      apiKey?: string;
+      baseUrl?: string;
+      temperature?: number;
+      maxTokens?: number;
+    };
+  };
   server?: {
     port?: number;
     baseDir?: string;

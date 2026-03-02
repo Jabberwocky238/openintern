@@ -1,4 +1,5 @@
 export { RunRepository } from './run-repository.js';
+export { PlanRepository } from './plan-repository.js';
 export { EventService } from './event-service.js';
 export { CheckpointService } from './checkpoint-service.js';
 export { MemoryService } from './memory-service.js';

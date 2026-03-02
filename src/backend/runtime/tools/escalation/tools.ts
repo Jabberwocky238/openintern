@@ -59,6 +59,7 @@ export function register(ctx: ToolContext): RuntimeTool[] {
           sessionKey: ctx.currentSessionKey!,
           input: childInput,
           agentId: 'orchestrator',
+          runMode: 'group',
           groupId,
           llmConfig: null,
           parentRunId: ctx.currentRunId!,

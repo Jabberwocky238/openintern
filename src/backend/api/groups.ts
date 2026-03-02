@@ -334,6 +334,7 @@ export function createGroupsRouter(config: GroupsRouterConfig): Router {
           sessionKey,
           input,
           agentId,
+          runMode: 'group',
           groupId,
           llmConfig: llm_config ?? null,
         });
@@ -346,6 +347,7 @@ export function createGroupsRouter(config: GroupsRouterConfig): Router {
           session_key: created.sessionKey,
           input: created.input,
           agent_id: created.agentId,
+          run_mode: created.runMode,
           created_at: created.createdAt,
           status: 'pending',
           llm_config: created.llmConfig ?? undefined,

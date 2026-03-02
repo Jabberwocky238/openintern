@@ -17,6 +17,7 @@ export const POSTGRES_SCHEMA_STATEMENTS: string[] = [
     session_key TEXT NOT NULL,
     input TEXT NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'waiting', 'completed', 'failed', 'cancelled')),
+    run_mode TEXT NOT NULL DEFAULT 'single' CHECK (run_mode IN ('single', 'group', 'plan_execute')),
     agent_id TEXT NOT NULL DEFAULT 'main',
     llm_config JSONB,
     result JSONB,
@@ -166,6 +167,33 @@ export const POSTGRES_SCHEMA_STATEMENTS: string[] = [
     END IF;
   END $$`,
   `CREATE INDEX IF NOT EXISTS runs_group_idx ON runs (group_id)`,
+
+  // Add run_mode to runs table (idempotent)
+  `DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'runs' AND column_name = 'run_mode'
+    ) THEN
+      ALTER TABLE runs ADD COLUMN run_mode TEXT NOT NULL DEFAULT 'single';
+    END IF;
+  END $$`,
+  `UPDATE runs
+    SET run_mode = 'group'
+    WHERE group_id IS NOT NULL
+      AND run_mode = 'single'`,
+  `DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_constraint
+      WHERE conname = 'runs_run_mode_check_v1'
+        AND conrelid = 'runs'::regclass
+    ) THEN
+      ALTER TABLE runs DROP CONSTRAINT IF EXISTS runs_run_mode_check;
+      ALTER TABLE runs ADD CONSTRAINT runs_run_mode_check_v1
+        CHECK (run_mode IN ('single', 'group', 'plan_execute'));
+    END IF;
+  END $$`,
+  `CREATE INDEX IF NOT EXISTS runs_run_mode_idx ON runs (run_mode, created_at DESC)`,
 
   // Add group_id and message_type to events table (idempotent)
   `DO $$ BEGIN
@@ -429,4 +457,43 @@ export const POSTGRES_SCHEMA_STATEMENTS: string[] = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_run_deps_parent ON run_dependencies(parent_run_id)`,
   `CREATE INDEX IF NOT EXISTS idx_run_deps_child  ON run_dependencies(child_run_id)`,
+
+  // ─── Plan-and-Execute DAG tables ──────────────────────────
+  `CREATE TABLE IF NOT EXISTS run_task_plans (
+    id BIGSERIAL PRIMARY KEY,
+    run_id TEXT NOT NULL UNIQUE REFERENCES runs(id) ON DELETE CASCADE,
+    planner_model TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'planned'
+      CHECK (status IN ('planned', 'running', 'completed', 'failed')),
+    raw_plan JSONB NOT NULL DEFAULT '{}'::jsonb,
+    failure_reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS run_task_plans_status_idx
+    ON run_task_plans (status, created_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS run_task_items (
+    id BIGSERIAL PRIMARY KEY,
+    plan_id BIGINT NOT NULL REFERENCES run_task_plans(id) ON DELETE CASCADE,
+    task_id TEXT NOT NULL,
+    task_text TEXT NOT NULL,
+    role_id TEXT NOT NULL,
+    depends_on TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    layer_index INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'planned'
+      CHECK (status IN ('planned', 'running', 'completed', 'failed')),
+    context TEXT,
+    acceptance TEXT,
+    child_run_id TEXT REFERENCES runs(id) ON DELETE SET NULL,
+    tool_call_id TEXT,
+    output TEXT,
+    error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(plan_id, task_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS run_task_items_plan_status_idx
+    ON run_task_items (plan_id, status, layer_index ASC, id ASC)`,
+  `CREATE INDEX IF NOT EXISTS run_task_items_child_idx
+    ON run_task_items (child_run_id)`,
 ];

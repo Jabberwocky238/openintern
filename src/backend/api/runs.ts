@@ -95,6 +95,7 @@ function mapRunToMeta(
     run_id: run.id,
     session_key: run.sessionKey,
     status: run.status,
+    run_mode: run.runMode ?? (run.groupId ? 'group' : 'single'),
     started_at: startedAt,
     ended_at: endedAt,
     duration_ms: durationMs,
@@ -128,6 +129,12 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
         const runId = generateRunId();
         const sessionKey = parseResult.data.session_key ?? 's_default';
         const agentId = parseResult.data.agent_id ?? 'main';
+        if (parseResult.data.run_mode === 'group') {
+          throw new ValidationError(
+            'run_mode=group is only supported via /api/groups/:group_id/runs',
+            'run_mode'
+          );
+        }
 
         const created = await runRepository.createRun({
           id: runId,
@@ -135,6 +142,7 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
           sessionKey,
           input: parseResult.data.input,
           agentId,
+          ...(parseResult.data.run_mode ? { runMode: parseResult.data.run_mode } : {}),
           llmConfig: parseResult.data.llm_config ?? null,
         });
 
@@ -146,6 +154,7 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
           session_key: created.sessionKey,
           input: created.input,
           agent_id: created.agentId,
+          run_mode: created.runMode,
           created_at: created.createdAt,
           status: 'pending',
           llm_config: created.llmConfig ?? undefined,
@@ -545,6 +554,7 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
               session_key: run.sessionKey,
               input: run.input,
               agent_id: run.agentId,
+              run_mode: run.runMode,
               created_at: run.createdAt,
               status: 'pending',
               ...(run.groupId ? { group_id: run.groupId } : {}),
@@ -651,6 +661,7 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
               session_key: run.sessionKey,
               input: run.input,
               agent_id: run.agentId,
+              run_mode: run.runMode,
               created_at: run.createdAt,
               status: 'pending',
               ...(run.groupId ? { group_id: run.groupId } : {}),

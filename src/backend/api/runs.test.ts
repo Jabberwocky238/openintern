@@ -70,6 +70,30 @@ describeIfDatabase('Runs API', () => {
       expect(response.status).toBe(201);
     });
 
+    it('should accept run_mode=plan_execute', async () => {
+      const response = await withScope(request(app)
+        .post('/api/runs')
+        .send({
+          session_key: 's_test',
+          input: 'Plan this complex task',
+          run_mode: 'plan_execute',
+        }));
+
+      expect(response.status).toBe(201);
+    });
+
+    it('should reject run_mode=group on generic runs endpoint', async () => {
+      const response = await withScope(request(app)
+        .post('/api/runs')
+        .send({
+          session_key: 's_test',
+          input: 'Group run',
+          run_mode: 'group',
+        }));
+
+      expect(response.status).toBe(400);
+    });
+
     it('should reject invalid session_key format', async () => {
       const response = await withScope(request(app)
         .post('/api/runs')

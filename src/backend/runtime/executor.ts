@@ -17,12 +17,14 @@ import type { EventService } from './event-service.js';
 import type { GroupRepository } from './group-repository.js';
 import type { RoleRepository } from './role-repository.js';
 import type { RunRepository } from './run-repository.js';
+import type { PlanRepository } from './plan-repository.js';
 import type { SkillRepository } from './skill/repository.js';
 import type { FeishuSyncService } from './integrations/feishu/sync-service.js';
 import type { MineruIngestService } from './integrations/mineru/ingest-service.js';
 import { refreshSkillRegistry } from './executor/skill-refresh.js';
 import { executeSingleRun } from './executor/single-run.js';
 import { executeGroupRun } from './executor/group-run.js';
+import { executePlanRun } from './executor/plan-run.js';
 import { formatToolResultMessageContent } from './tool-result-content.js';
 import { buildHumanOverrideNote, hasHumanModifiedArgs } from './hitl-note.js';
 
@@ -40,10 +42,12 @@ export interface RuntimeExecutorConfig {
   sseManager: SSEManager;
   groupRepository: GroupRepository;
   roleRepository: RoleRepository;
+  planRepository?: PlanRepository;
   feishuSyncService?: FeishuSyncService;
   mineruIngestService?: MineruIngestService;
   maxSteps: number;
   defaultModelConfig: LLMConfig;
+  plannerModelConfig?: LLMConfig;
   workDir: string;
   mcp?: {
     enabled: boolean;
@@ -112,6 +116,7 @@ function mapRunRecordToQueuedRun(run: Awaited<ReturnType<RunRepository['getRunBy
     session_key: run.sessionKey,
     input: run.input,
     agent_id: run.agentId,
+    run_mode: run.runMode ?? (run.groupId ? 'group' : 'single'),
     created_at: run.createdAt,
     status: 'pending',
     ...(run.llmConfig ? { llm_config: run.llmConfig } : {}),
@@ -422,7 +427,15 @@ export function createRuntimeExecutor(config: RuntimeExecutorConfig): RuntimeExe
 
     try {
       const extras = { toolScheduler: sharedToolScheduler, skillLoader, mcpManager };
-      const status = run.group_id
+      const status = run.run_mode === 'plan_execute'
+        ? await executePlanRun(
+            { ...config, ...(sharedSwarmCoordinator ? { swarmCoordinator: sharedSwarmCoordinator } : {}) },
+            run,
+            scope,
+            modelConfig,
+            signal
+          )
+        : run.group_id || run.run_mode === 'group'
         ? await executeGroupRun(
             { ...config, ...(sharedSwarmCoordinator ? { swarmCoordinator: sharedSwarmCoordinator } : {}) },
             run,
