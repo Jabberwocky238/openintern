@@ -5,8 +5,8 @@ import {
   UpdateFeishuConnectorRequestSchema,
   type FeishuConnectorConfig,
   type FeishuConnectorStatus,
-} from '../../types/feishu.js';
-import { AgentError, ValidationError } from '../../utils/errors.js';
+} from '@openintern/types/feishu.js';
+import { AgentError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { resolveRequestScope } from '../runtime/request-scope.js';
 import type { IFeishuRepository } from '@openintern/repository';

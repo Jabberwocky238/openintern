@@ -1,7 +1,7 @@
-import type { ToolDefinition, ToolResult } from '../../types/agent.js';
-import type { Skill } from '../../types/skill.js';
+import type { ToolDefinition, ToolResult } from '@openintern/types/agent.js';
+import type { Skill } from '@openintern/types/skill.js';
 import type { ScopeContext } from './scope.js';
-import { ToolError } from '../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { MCPClient } from '../agent/mcp-client.js';
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
@@ -13,7 +13,7 @@ import type { AgentContext } from './tool-policy.js';
 import { ToolPolicy } from './tool-policy.js';
 import type { SkillRegistry } from './skill/registry.js';
 import type { EscalationService } from './escalation-service.js';
-import type { IGroupRepository } from '@openintern/repository';
+import type { IGroupRepository, IRunRepository, IRoleRepository } from '@openintern/repository';
 import type { RuntimeTool, ToolContext } from './tools/_helpers.js';
 
 // ─── Tool modules ────────────────────────────────────────
@@ -120,8 +120,8 @@ export interface RuntimeToolRouterConfig {
   skillRegistry?: SkillRegistry;
   escalationService?: EscalationService;
   groupRepository?: IGroupRepository;
-  runRepository?: import('./').IRunRepository;
-  roleRepository?: import('./').IRoleRepository;
+  runRepository?: IRunRepository;
+  roleRepository?: IRoleRepository;
   runQueue?: { enqueue(runId: string): Promise<void> | void };
   currentRunId?: string;
   currentSessionKey?: string;
@@ -139,6 +139,7 @@ export class RuntimeToolRouter {
   private readonly tools = new Map<string, RuntimeTool>();
   private readonly timeoutMs: number;
   private readonly mcpClient: MCPClient | null;
+  private mcpAvailable = true;
   private readonly toolPolicy: ToolPolicy;
   private readonly ajv: Ajv;
   private readonly validatorCache = new Map<string, ValidateFunction<Record<string, unknown>>>();
@@ -206,8 +207,20 @@ export class RuntimeToolRouter {
 
   async start(): Promise<void> {
     if (!this.mcpClient) return;
-    await this.mcpClient.start();
-    await this.refreshMcpTools();
+    try {
+      await this.mcpClient.start();
+      await this.refreshMcpTools();
+      this.mcpAvailable = true;
+    } catch (error) {
+      if (!this.isRecoverableMcpError(error)) {
+        throw error;
+      }
+      this.mcpAvailable = false;
+      logger.warn('MCP unavailable, continuing with builtin tools only', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      await this.mcpClient.stop().catch(() => undefined);
+    }
   }
 
   async stop(): Promise<void> {
@@ -421,6 +434,7 @@ export class RuntimeToolRouter {
 
   private async callMcpTool(name: string, params: Record<string, unknown>): Promise<unknown> {
     if (!this.mcpClient) throw new ToolError('MCP client is not enabled', name);
+    if (!this.mcpAvailable) throw new ToolError('MCP is unavailable', name);
     try {
       const result = await this.mcpClient.callTool(name, params);
       return parseMcpContent(result);
@@ -440,6 +454,7 @@ export class RuntimeToolRouter {
     await this.mcpClient.stop().catch(() => undefined);
     await this.mcpClient.start();
     await this.refreshMcpTools();
+    this.mcpAvailable = true;
   }
 
   private async refreshMcpTools(): Promise<void> {

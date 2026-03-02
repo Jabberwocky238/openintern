@@ -1,4 +1,4 @@
-import type { CreateRole, Role } from '../../../types/orchestrator.js';
+import type { CreateRole, Role } from '@openintern/types/orchestrator.js';
 import { NotFoundError } from '@openintern/utils';
 import { generateRoleId } from '@openintern/utils';
 import type { IRoleRepository } from '../interfaces/role-repository.js';

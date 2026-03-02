@@ -1,6 +1,6 @@
-﻿import fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
-import type { ToolDefinition } from '../../../types/agent.js';
+import type { ToolDefinition } from '@openintern/types/agent.js';
 import type { ScopeContext } from '../scope.js';
 import type { AgentContext } from '../tool-policy.js';
 import type { MemoryService } from '../memory-service.js';
@@ -12,7 +12,7 @@ import type { EscalationService } from '../escalation-service.js';
 import type { IGroupRepository } from '@openintern/repository';
 import type { IRunRepository } from '@openintern/repository';
 import type { IRoleRepository } from '@openintern/repository';
-import { ToolError } from '../../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 
 export type ToolHandler = (params: Record<string, unknown>) => Promise<unknown>;
 

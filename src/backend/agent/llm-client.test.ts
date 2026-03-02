@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MockLLMClient, createLLMClient, sanitizeMessagesForLLM } from './llm-client.js';
 import { OpenAIClient } from './openai-client.js';
 import { AnthropicClient } from './anthropic-client.js';
-import type { Message, ToolDefinition } from '../../types/agent.js';
+import type { Message, ToolDefinition } from '@openintern/types/agent.js';
 
 describe('MockLLMClient', () => {
   let client: MockLLMClient;

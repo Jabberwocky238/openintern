@@ -4,7 +4,7 @@
  * Create and execute a new run
  */
 
-import type { CreateRunResponse } from '../../types/api.js';
+import type { CreateRunResponse } from '@openintern/types/api.js';
 import { loadConfig } from '../../config/loader.js';
 import * as output from '../utils/output.js';
 

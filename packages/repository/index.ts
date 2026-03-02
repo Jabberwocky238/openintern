@@ -37,10 +37,16 @@ export type {
   CreateFeishuSyncJobInput,
   UpsertFeishuSourceStateInput,
 } from './interfaces/feishu-repository.js';
+export type {
+  IMemoryRepository,
+  MemorySearchInput,
+  MemoryWriteRequestRepo,
+  ReplaceArchivalDocumentInput,
+} from './interfaces/memory-repository.js';
 import { logger } from '@openintern/utils';
 import type { IPostgresPool } from './interfaces/postgres-client.js';
 
-import * as memoryRepository from './memory/index.js';
+import * as memoryRepository from './memcache/index.js';
 import * as postgresRepository from './postgres/index.js';
 
 type RepositoryDevType = 'memory' | 'postgres';
@@ -52,6 +58,7 @@ type RepositoryModule = {
   SkillRepository: new (...args: any[]) => import('./interfaces/skill-repository.js').ISkillRepository;
   PluginRepository: new (...args: any[]) => import('./interfaces/plugin-repository.js').IPluginRepository;
   FeishuRepository: new (...args: any[]) => import('./interfaces/feishu-repository.js').IFeishuRepository;
+  MemoryRepository: new (...args: any[]) => import('./interfaces/memory-repository.js').IMemoryRepository;
 };
 
 const repositoryDevType: RepositoryDevType =
@@ -66,12 +73,13 @@ export default selectedRepository;
 const MEMORY_MODE_MIGRATION_WARNING =
   'Repository mode is memory; skipping Postgres migrations.';
 
-export async function runPostgresMigrations(pool: IPostgresPool): Promise<void> {
+export async function runPostgresMigrations(pool?: IPostgresPool): Promise<void> {
   if (repositoryDevType === 'memory') {
     logger.warn(MEMORY_MODE_MIGRATION_WARNING);
     return;
   }
-  await postgresRepository.runPostgresMigrations(pool);
+  const targetPool = pool ?? postgresRepository.getPostgresPool();
+  await postgresRepository.runPostgresMigrations(targetPool);
 }
 
 export const {
@@ -82,6 +90,7 @@ export const {
   SkillRepository,
   PluginRepository,
   FeishuRepository,
+  MemoryRepository,
 } = selectedRepository;
 
 export type RunRepository = import('./interfaces/run-repository.js').IRunRepository;
@@ -96,5 +105,5 @@ export type PluginRow = import('./interfaces/plugin-repository.js').PluginRowVie
 export type PluginJobRow = import('./interfaces/plugin-repository.js').PluginJobRowView;
 export type PluginKvRow = import('./interfaces/plugin-repository.js').PluginKvRowView;
 export type FeishuRepository = import('./interfaces/feishu-repository.js').IFeishuRepository;
+export type MemoryRepository = import('./interfaces/memory-repository.js').IMemoryRepository;
 export type FeishuSourceState = import('./interfaces/feishu-repository.js').FeishuSourceStateView;
-

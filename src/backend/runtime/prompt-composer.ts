@@ -1,5 +1,5 @@
-﻿import type { Message } from '../../types/agent.js';
-import type { Skill } from '../../types/skill.js';
+﻿import type { Message } from '@openintern/types/agent.js';
+import type { Skill } from '@openintern/types/skill.js';
 import type { AgentContext } from './tool-policy.js';
 import type { GroupWithRoles } from '@openintern/repository';
 

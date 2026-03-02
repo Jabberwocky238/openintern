@@ -5,11 +5,12 @@ import type {
   FeishuSyncJob,
   FeishuSyncStats,
   FeishuSyncTrigger,
-} from '../../../types/feishu.js';
-import { generatePluginId, generatePluginJobId } from '@openintern/utils';
+} from '@openintern/types/feishu.js';
 import { NotFoundError } from '@openintern/utils';
-import type { PluginRepository, PluginRow, PluginJobRow, PluginKvRow } from './plugin-repository.js';
+import { generatePluginId, generatePluginJobId } from '@openintern/utils';
 import type { IFeishuRepository } from '../interfaces/feishu-repository.js';
+import type { PluginJobRow, PluginKvRow, PluginRow } from './plugin-repository.js';
+import { PluginRepository } from './plugin-repository.js';
 
 const PROVIDER = 'feishu';
 
@@ -25,25 +26,36 @@ export interface FeishuSourceState {
   last_synced_at: string;
 }
 
+const DEFAULT_STATS: FeishuSyncStats = {
+  discovered: 0,
+  processed: 0,
+  skipped: 0,
+  failed: 0,
+  docx_docs: 0,
+  bitable_tables: 0,
+  chunk_count: 0,
+};
+
 function toIso(value: string | Date | null | undefined): string | null {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
 function mapPluginToConnector(row: PluginRow): FeishuConnector {
-  const state = row.state;
   return {
     id: row.id,
     org_id: row.org_id,
     project_id: row.project_id,
     name: row.name,
     status: row.status as FeishuConnectorStatus,
-    config: row.config as unknown as FeishuConnectorConfig,
+    config: row.config as FeishuConnectorConfig,
     created_by: row.created_by,
-    last_sync_at: toIso(state.last_sync_at as string | null),
-    last_success_at: toIso(state.last_success_at as string | null),
-    last_error: (state.last_error as string) ?? null,
-    last_polled_at: toIso(state.last_polled_at as string | null),
+    last_sync_at: toIso(row.state.last_sync_at as string | null),
+    last_success_at: toIso(row.state.last_success_at as string | null),
+    last_error: (row.state.last_error as string) ?? null,
+    last_polled_at: toIso(row.state.last_polled_at as string | null),
     created_at: toIso(row.created_at) ?? new Date().toISOString(),
     updated_at: toIso(row.updated_at) ?? new Date().toISOString(),
   };
@@ -67,30 +79,20 @@ function mapJobToSyncJob(row: PluginJobRow): FeishuSyncJob {
   };
 }
 
-function mapKvToSourceState(row: PluginKvRow): FeishuSourceState {
-  const v = row.value;
+function mapKvToState(row: PluginKvRow): FeishuSourceState {
+  const value = row.value;
   return {
     connector_id: row.plugin_id,
     source_key: row.key,
-    source_type: v.source_type as 'docx' | 'bitable',
-    source_id: v.source_id as string,
-    revision_id: (v.revision_id as string) ?? null,
-    content_hash: (v.content_hash as string) ?? null,
-    metadata: (v.metadata as Record<string, unknown>) ?? {},
-    updated_at: toIso(v.updated_at as string | null),
+    source_type: value.source_type as 'docx' | 'bitable',
+    source_id: value.source_id as string,
+    revision_id: (value.revision_id as string) ?? null,
+    content_hash: (value.content_hash as string) ?? null,
+    metadata: (value.metadata as Record<string, unknown>) ?? {},
+    updated_at: toIso(value.updated_at as string | null),
     last_synced_at: toIso(row.updated_at) ?? new Date().toISOString(),
   };
 }
-
-const DEFAULT_STATS: FeishuSyncStats = {
-  discovered: 0,
-  processed: 0,
-  skipped: 0,
-  failed: 0,
-  docx_docs: 0,
-  bitable_tables: 0,
-  chunk_count: 0,
-};
 
 export class FeishuRepository implements IFeishuRepository {
   constructor(private readonly repo: PluginRepository) {}
@@ -110,7 +112,7 @@ export class FeishuRepository implements IFeishuRepository {
       projectId: input.projectId,
       name: input.name,
       status: input.status,
-      config: input.config as unknown as Record<string, unknown>,
+      config: input.config as Record<string, unknown>,
       createdBy: input.createdBy,
     });
     return mapPluginToConnector(row);
@@ -126,35 +128,41 @@ export class FeishuRepository implements IFeishuRepository {
     return rows.map(mapPluginToConnector);
   }
 
-  async getConnector(
-    scope: { orgId: string; projectId: string },
-    connectorId: string,
-  ): Promise<FeishuConnector | null> {
+  async getConnector(scope: { orgId: string; projectId: string }, connectorId: string): Promise<FeishuConnector | null> {
     const row = await this.repo.getPluginScoped(connectorId, PROVIDER, scope.orgId, scope.projectId);
     return row ? mapPluginToConnector(row) : null;
   }
 
-  async requireConnector(
-    scope: { orgId: string; projectId: string },
-    connectorId: string,
-  ): Promise<FeishuConnector> {
+  async requireConnector(scope: { orgId: string; projectId: string }, connectorId: string): Promise<FeishuConnector> {
     const connector = await this.getConnector(scope, connectorId);
-    if (!connector) throw new NotFoundError('Feishu connector', connectorId);
+    if (!connector) {
+      throw new NotFoundError('Feishu connector', connectorId);
+    }
     return connector;
   }
 
   async updateConnector(
     scope: { orgId: string; projectId: string },
     connectorId: string,
-    patch: { name?: string; status?: FeishuConnectorStatus; config?: FeishuConnectorConfig },
+    patch: { name?: string; status?: FeishuConnectorStatus; config?: FeishuConnectorConfig }
   ): Promise<FeishuConnector> {
-    const p: Record<string, unknown> = {};
-    if (patch.name !== undefined) p.name = patch.name;
-    if (patch.status !== undefined) p.status = patch.status;
-    if (patch.config !== undefined) p.config = patch.config;
-    if (Object.keys(p).length === 0) return this.requireConnector(scope, connectorId);
-    const row = await this.repo.updatePlugin(connectorId, PROVIDER, scope.orgId, scope.projectId, p);
-    if (!row) throw new NotFoundError('Feishu connector', connectorId);
+    const updates: Record<string, unknown> = {};
+    if (patch.name !== undefined) {
+      updates.name = patch.name;
+    }
+    if (patch.status !== undefined) {
+      updates.status = patch.status;
+    }
+    if (patch.config !== undefined) {
+      updates.config = patch.config;
+    }
+    if (Object.keys(updates).length === 0) {
+      return this.requireConnector(scope, connectorId);
+    }
+    const row = await this.repo.updatePlugin(connectorId, PROVIDER, scope.orgId, scope.projectId, updates);
+    if (!row) {
+      throw new NotFoundError('Feishu connector', connectorId);
+    }
     return mapPluginToConnector(row);
   }
 
@@ -162,11 +170,7 @@ export class FeishuRepository implements IFeishuRepository {
     await this.repo.updatePluginState(connectorId, { last_polled_at: new Date().toISOString() });
   }
 
-  async updateConnectorSyncResult(input: {
-    connectorId: string;
-    success: boolean;
-    errorMessage: string | null;
-  }): Promise<void> {
+  async updateConnectorSyncResult(input: { connectorId: string; success: boolean; errorMessage: string | null }): Promise<void> {
     const now = new Date().toISOString();
     if (input.success) {
       await this.repo.updatePluginState(input.connectorId, {
@@ -174,12 +178,12 @@ export class FeishuRepository implements IFeishuRepository {
         last_success_at: now,
         last_error: null,
       });
-    } else {
-      await this.repo.updatePluginState(input.connectorId, {
-        last_sync_at: now,
-        last_error: input.errorMessage,
-      });
+      return;
     }
+    await this.repo.updatePluginState(input.connectorId, {
+      last_sync_at: now,
+      last_error: input.errorMessage,
+    });
   }
 
   async createSyncJob(input: {
@@ -214,11 +218,7 @@ export class FeishuRepository implements IFeishuRepository {
     return mapJobToSyncJob(row);
   }
 
-  async listSyncJobs(
-    scope: { orgId: string; projectId: string },
-    connectorId: string,
-    limit: number,
-  ): Promise<FeishuSyncJob[]> {
+  async listSyncJobs(scope: { orgId: string; projectId: string }, connectorId: string, limit: number): Promise<FeishuSyncJob[]> {
     const rows = await this.repo.listJobs(connectorId, scope.orgId, scope.projectId, limit);
     return rows.map(mapJobToSyncJob);
   }
@@ -230,7 +230,7 @@ export class FeishuRepository implements IFeishuRepository {
 
   async getSourceState(connectorId: string, sourceKey: string): Promise<FeishuSourceState | null> {
     const row = await this.repo.getKv(connectorId, sourceKey);
-    return row ? mapKvToSourceState(row) : null;
+    return row ? mapKvToState(row) : null;
   }
 
   async upsertSourceState(input: {

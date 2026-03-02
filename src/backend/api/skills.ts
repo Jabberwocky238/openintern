@@ -9,8 +9,8 @@
  */
 
 import { Router, type Request, type Response } from 'express';
-import { CreateSkillSchema } from '../../types/skill.js';
-import { AgentError, ValidationError } from '../../utils/errors.js';
+import { CreateSkillSchema } from '@openintern/types/skill.js';
+import { AgentError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import type { ISkillRepository } from '@openintern/repository';
 

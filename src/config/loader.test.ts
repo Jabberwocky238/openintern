@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadConfig, clearConfigCache, toLLMConfig, toPlannerLLMConfig } from './loader.js';
-import type { AgentConfig } from '../types/agent.js';
+import type { AgentConfig } from '@openintern/types/agent.js';
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 

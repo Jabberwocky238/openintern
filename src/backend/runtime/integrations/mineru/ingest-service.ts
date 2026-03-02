@@ -4,13 +4,13 @@ import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import { promisify } from 'node:util';
-import type { MemoryScope } from '../../../../types/memory.js';
-import { AgentError } from '../../../../utils/errors.js';
+import type { MemoryScope } from '@openintern/types/memory.js';
+import { AgentError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { MemoryService } from '../../memory-service.js';
 import { MineruClient } from './client.js';
 import { normalizeMineruOutputToChunks } from './normalizer.js';
-import type { MineruExtractOptions, MineruModelVersion } from '../../../../types/mineru.js';
+import type { MineruExtractOptions, MineruModelVersion } from '@openintern/types/mineru.js';
 
 const execFileAsync = promisify(execFile);
 

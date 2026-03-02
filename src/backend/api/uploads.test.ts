@@ -10,7 +10,7 @@ import os from 'node:os';
 import express from 'express';
 import { createUploadsRouter } from './uploads.js';
 import { UploadService } from '../runtime/upload-service.js';
-import { ValidationError } from '../../utils/errors.js';
+import { ValidationError } from '@openintern/utils';
 
 const TEST_SCOPE = {
   orgId: 'org_test',

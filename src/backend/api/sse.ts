@@ -10,8 +10,8 @@
  */
 
 import type { Response } from 'express';
-import type { Event } from '../../types/events.js';
-import type { SSEMessage } from '../../types/api.js';
+import type { Event } from '@openintern/types/events.js';
+import type { SSEMessage } from '@openintern/types/api.js';
 import { logger } from '@openintern/utils';
 
 /**

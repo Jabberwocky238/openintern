@@ -1,4 +1,4 @@
-﻿import type { Event } from '../../types/events.js';
+﻿import type { Event } from '@openintern/types/events.js';
 import type { ScopeContext } from './scope.js';
 import type { IRunRepository } from '@openintern/repository';
 

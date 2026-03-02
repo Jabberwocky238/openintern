@@ -1,5 +1,5 @@
-import type { Role } from '../../types/orchestrator.js';
-import type { RiskLevel } from '../../types/skill.js';
+import type { Role } from '@openintern/types/orchestrator.js';
+import type { RiskLevel } from '@openintern/types/skill.js';
 import type { DelegatedPermissions } from './models.js';
 
 /**
@@ -101,7 +101,7 @@ export class ToolPolicy {
       return {
         allowed: false,
         decision: 'ask',
-        reason: `Tool "${tool.name}" has high risk level â€?requires approval for role "${agent.roleId}"`,
+        reason: `Tool "${tool.name}" has high risk level ï¿½?requires approval for role "${agent.roleId}"`,
       };
     }
 
@@ -124,9 +124,9 @@ export class ToolPolicy {
    * Check tool access considering delegated permissions from a parent PA run.
    *
    * Implements intersection logic:
-   *   Effective permissions = Role permissions âˆ?Delegated permissions
-   *   - denied_tools = Role.denied âˆ?Delegated.denied (union: either deny blocks)
-   *   - allowed_tools = Role.allowed âˆ?Delegated.allowed (intersection: both must allow)
+   *   Effective permissions = Role permissions ï¿½?Delegated permissions
+   *   - denied_tools = Role.denied ï¿½?Delegated.denied (union: either deny blocks)
+   *   - allowed_tools = Role.allowed ï¿½?Delegated.allowed (intersection: both must allow)
    *
    * Priority (highest to lowest):
    *   1. Delegated denied_tools -> deny

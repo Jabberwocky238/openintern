@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { RuntimeToolRouter } from './tool-router.js';
+import { MCPClient } from '../agent/mcp-client.js';
 import type { MemoryService } from './memory-service.js';
 import type { EventService } from './event-service.js';
 import type { FeishuSyncService } from './integrations/feishu/sync-service.js';
@@ -459,6 +460,34 @@ describe('RuntimeToolRouter', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('Tool not found');
+  });
+
+  it('degrades gracefully when MCP server is unavailable during startup', async () => {
+    const startSpy = vi
+      .spyOn(MCPClient.prototype, 'start')
+      .mockRejectedValueOnce(new Error('MCP server closed'));
+    const stopSpy = vi.spyOn(MCPClient.prototype, 'stop').mockResolvedValueOnce();
+
+    const router = new RuntimeToolRouter({
+      scope: {
+        orgId: 'org_test',
+        userId: 'user_test',
+        projectId: null,
+      },
+      memoryService: memoryService as unknown as MemoryService,
+      eventService: eventService as unknown as EventService,
+      workDir,
+      timeoutMs: 50,
+      mcp: {
+        enabled: true,
+      },
+    });
+
+    await expect(router.start()).resolves.toBeUndefined();
+
+    expect(startSpy).toHaveBeenCalledTimes(1);
+    expect(stopSpy).toHaveBeenCalledTimes(1);
+    expect(router.listTools().map((tool) => tool.name)).toContain('memory_search');
   });
 
   it('returns skills catalog from skills_list tool', async () => {

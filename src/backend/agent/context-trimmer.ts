@@ -8,7 +8,7 @@
  * - Pre-compaction memory flush hook
  */
 
-import type { Message } from '../../types/agent.js';
+import type { Message } from '@openintern/types/agent.js';
 import { TokenCounter } from './token-counter.js';
 import { logger } from '@openintern/utils';
 

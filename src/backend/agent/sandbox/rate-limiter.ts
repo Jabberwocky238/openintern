@@ -2,7 +2,7 @@
  * ToolRateLimiter - Sliding window rate limiting for tool calls
  */
 
-import { SandboxError } from '../../../utils/errors.js';
+import { SandboxError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 export interface RateLimiterConfig {

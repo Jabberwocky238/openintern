@@ -1,13 +1,13 @@
 import { logger } from '@openintern/utils';
-import type { MemoryScope } from '../../../../types/memory.js';
+import type { MemoryScope } from '@openintern/types/memory.js';
 import {
   FeishuChunkingConfigSchema,
   type FeishuChunkingConfig,
   type FeishuConnector,
   type FeishuSyncJob,
   type FeishuSyncStats,
-} from '../../../../types/feishu.js';
-import { AgentError } from '../../../../utils/errors.js';
+} from '@openintern/types/feishu.js';
+import { AgentError } from '@openintern/utils';
 import { FeishuClient } from './client.js';
 import { normalizeBitableTableToChunks, normalizeDocxToChunks } from './normalizer.js';
 import type { IFeishuRepository } from '@openintern/repository';
@@ -436,7 +436,7 @@ export class FeishuSyncService {
     };
 
     for (const token of connector.config.file_tokens) {
-      // 优先尝试 Drive 探测类型，若权限不足/接口不可用则�?docx token 兜底�?
+      // 优先尝试 Drive 探测类型，若权限不足/接口不可用则�?docx token 兜底�?
       try {
         const file = await client.getDriveFile(token);
         if (file) {
@@ -486,7 +486,7 @@ export class FeishuSyncService {
     }
 
     for (const wikiToken of connector.config.wiki_node_tokens) {
-      // 当前先按 docx token 直读，避免强依赖 wiki:node scope�?
+      // 当前先按 docx token 直读，避免强依赖 wiki:node scope�?
       push({
         kind: 'docx',
         file_token: wikiToken,

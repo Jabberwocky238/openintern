@@ -1,5 +1,5 @@
 import type { IPostgresPool } from '../interfaces/postgres-client.js';
-import type { Role, CreateRole } from '../../../types/orchestrator.js';
+import type { Role, CreateRole } from '@openintern/types/orchestrator.js';
 import { generateRoleId } from '@openintern/utils';
 import { NotFoundError } from '@openintern/utils';
 import type { IRoleRepository } from '../interfaces/role-repository.js';

@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { ValidationError } from '../../utils/errors.js';
+import { ValidationError } from '@openintern/utils';
 import type { ScopeContext } from './scope.js';
 
 function readString(value: unknown): string | undefined {

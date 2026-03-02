@@ -1,7 +1,7 @@
-import type { FeishuChunkingConfig } from '../../../../types/feishu.js';
+import type { FeishuChunkingConfig } from '@openintern/types/feishu.js';
 import type { RuntimeTool, ToolContext } from '../../tools/_helpers.js';
 import { extractString, extractBoolean } from '../../tools/_helpers.js';
-import { ToolError } from '../../../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 
 export function register(ctx: ToolContext): RuntimeTool[] {
   return [

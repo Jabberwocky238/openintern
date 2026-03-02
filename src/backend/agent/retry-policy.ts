@@ -4,7 +4,7 @@
  * Config: maxRetries=3, baseDelay=1s, maxDelay=30s
  */
 
-import type { RetryConfig } from '../../types/agent.js';
+import type { RetryConfig } from '@openintern/types/agent.js';
 import { classifyError } from './error-classifier.js';
 import { logger } from '@openintern/utils';
 

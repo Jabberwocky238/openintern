@@ -12,15 +12,15 @@ import type {
   LLMContext,
   Message,
   ContentPart,
-} from '../../types/agent.js';
-import { getMessageText } from '../../types/agent.js';
-import type { MemoryItem } from '../../types/memory.js';
+} from '@openintern/types/agent.js';
+import { getMessageText } from '@openintern/types/agent.js';
+import type { MemoryItem } from '@openintern/types/memory.js';
 import { MemoryStore } from '../store/memory-store.js';
 import { TokenCounter } from './token-counter.js';
 import { ContextTrimmer } from './context-trimmer.js';
 import { logger } from '@openintern/utils';
 
-const DEFAULT_SYSTEM_PROMPT = `You are a helpful AI assistant. You have access to tools that are provided via the function calling interface â€?use them when appropriate.
+const DEFAULT_SYSTEM_PROMPT = `You are a helpful AI assistant. You have access to tools that are provided via the function calling interface ï¿½?use them when appropriate.
 
 Guidelines:
 - You do NOT have built-in memory across conversations. If the user asks a personal question (like your name) or references past information, you MUST call memory.search first before answering. Never guess or make up information.

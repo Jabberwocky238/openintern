@@ -12,7 +12,7 @@
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { QueuedRun } from '../../types/api.js';
+import type { QueuedRun } from '@openintern/types/api.js';
 import { logger } from '@openintern/utils';
 
 /**
@@ -350,7 +350,7 @@ export class RunQueue extends EventEmitter {
         this.emit('run.cancelled', cancelledRun);
         logger.info('Run cancelled while running', { runId: run.run_id });
       } else if (finalStatus === 'suspended') {
-        // Run suspended to disk â€?don't track in completedRuns, it will be re-enqueued on resume
+        // Run suspended to disk ï¿½?don't track in completedRuns, it will be re-enqueued on resume
         logger.info('Run suspended to disk', { runId: run.run_id });
       } else if (finalStatus === 'failed') {
         const failedRun: QueuedRun = {

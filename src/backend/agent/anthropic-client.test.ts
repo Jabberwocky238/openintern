@@ -4,8 +4,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AnthropicClient } from './anthropic-client.js';
-import { LLMError } from '../../utils/errors.js';
-import type { Message, ToolDefinition } from '../../types/agent.js';
+import { LLMError } from '@openintern/utils';
+import type { Message, ToolDefinition } from '@openintern/types/agent.js';
 
 const MOCK_API_KEY = 'test-anthropic-key';
 

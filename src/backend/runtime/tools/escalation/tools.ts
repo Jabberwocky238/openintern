@@ -1,7 +1,7 @@
 import type { RuntimeTool, ToolContext } from '../_helpers.js';
 import { extractString } from '../_helpers.js';
-import { ToolError } from '../../../../utils/errors.js';
-import { generateRunId } from '../../../../utils/ids.js';
+import { ToolError } from '@openintern/utils';
+import { generateRunId } from '@openintern/utils';
 
 export function register(ctx: ToolContext): RuntimeTool[] {
   return [

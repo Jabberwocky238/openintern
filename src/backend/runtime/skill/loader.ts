@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Skill, SkillSourceType } from '../../../types/skill.js';
+import type { Skill, SkillSourceType } from '@openintern/types/skill.js';
 import { logger } from '@openintern/utils';
 
 /**

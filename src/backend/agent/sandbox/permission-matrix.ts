@@ -2,7 +2,7 @@
  * PermissionMatrix - Tool operation permission control
  */
 
-import { SandboxError } from '../../../utils/errors.js';
+import { SandboxError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 export type PermissionLevel = 'allow' | 'deny' | 'readonly';

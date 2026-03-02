@@ -9,6 +9,8 @@ import path from 'node:path';
 import { spawn } from 'child_process';
 import * as output from '../utils/output.js';
 
+const DEFAULT_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 export interface DoctorOptions {
   fix: boolean;
 }
@@ -118,7 +120,7 @@ async function checkDataDirectory(fix: boolean): Promise<CheckResult> {
  * Check Python MCP Server availability
  */
 async function checkPythonMCP(): Promise<CheckResult> {
-  const pythonPath = process.env['PYTHON_PATH'] ?? 'python3';
+  const pythonPath = process.env['PYTHON_PATH'] ?? DEFAULT_PYTHON_PATH;
 
   return new Promise((resolve) => {
     const proc = spawn(pythonPath, ['--version'], {

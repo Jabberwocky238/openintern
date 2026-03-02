@@ -1,4 +1,4 @@
-import type { Event } from '../../../types/events.js';
+import type { Event } from '@openintern/types/events.js';
 import type { RuntimeExecutorConfig } from '../executor.js';
 import { EpisodicGenerator } from '../episodic-generator.js';
 import { KnowledgeDepositor } from '../knowledge-depositor.js';

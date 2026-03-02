@@ -8,9 +8,9 @@ import type {
   Message,
   ToolDefinition,
   ToolCall,
-} from '../../types/agent.js';
-import { getMessageText } from '../../types/agent.js';
-import { LLMError } from '../../utils/errors.js';
+} from '@openintern/types/agent.js';
+import { getMessageText } from '@openintern/types/agent.js';
+import { LLMError } from '@openintern/utils';
 import {
   sanitizeMessagesForLLM,
   type ILLMClient,

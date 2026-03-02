@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { SkillRegistry } from './registry.js';
-import type { Skill } from '../../../types/skill.js';
+import type { Skill } from '@openintern/types/skill.js';
 
 describe('SkillRegistry', () => {
   let registry: SkillRegistry;

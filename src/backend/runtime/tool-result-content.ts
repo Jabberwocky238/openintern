@@ -1,4 +1,4 @@
-import type { ToolResult } from '../../types/agent.js';
+import type { ToolResult } from '@openintern/types/agent.js';
 
 // Keep tool payloads compact in persisted history to avoid context poisoning/looping.
 const TOOL_RESULT_MESSAGE_MAX_CHARS = 1200;

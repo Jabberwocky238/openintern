@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Event } from '../../types/events.js';
-import { EventSchema } from '../../types/events.js';
-import type { LLMResponse, Message } from '../../types/agent.js';
+import type { Event } from '@openintern/types/events.js';
+import { EventSchema } from '@openintern/types/events.js';
+import type { LLMResponse, Message } from '@openintern/types/agent.js';
 import { createLLMClient } from '../agent/llm-client.js';
 import { SingleAgentRunner, type RunnerContext } from './agent-runner.js';
 import { RunSuspendedError } from './tool-scheduler.js';

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { AgentError } from '../../utils/errors.js';
+import { AgentError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 interface FeishuImWebhookResult {

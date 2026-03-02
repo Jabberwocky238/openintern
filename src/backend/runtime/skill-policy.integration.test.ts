@@ -20,7 +20,7 @@ import { ToolPolicy } from './tool-policy.js';
 import type { AgentContext } from './tool-policy.js';
 import type { MemoryService } from './memory-service.js';
 import type { EventService } from './event-service.js';
-import type { Skill } from '../../types/skill.js';
+import type { Skill } from '@openintern/types/skill.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 
@@ -213,7 +213,7 @@ interface MockEventService {
   list: Mock;
 }
 
-describe('ToolPolicy â†?SkillRegistry â†?RuntimeToolRouter integration', () => {
+describe('ToolPolicy ï¿½?SkillRegistry ï¿½?RuntimeToolRouter integration', () => {
   let workDir: string;
   let memoryService: MockMemoryService;
   let eventService: MockEventService;
@@ -310,7 +310,7 @@ describe('ToolPolicy â†?SkillRegistry â†?RuntimeToolRouter integration', () => {
     expect(denied.blocked).toBe(true);
     expect(denied.error).toContain('explicitly denied');
 
-    // same skill, different tool â€?not denied
+    // same skill, different tool ï¿½?not denied
     await fs.promises.writeFile(path.join(workDir, 'hello.txt'), 'world');
     const ok = await router.callTool('read_file', {
       path: 'hello.txt',
@@ -356,13 +356,13 @@ describe('ToolPolicy â†?SkillRegistry â†?RuntimeToolRouter integration', () => {
 
     const ctx = ToolPolicy.contextFromRole(role, 'agent_critic_1');
 
-    // memory_search is in whitelist â†?allowed
+    // memory_search is in whitelist ï¿½?allowed
     const searchResult = await router.callTool('memory_search', {
       query: 'test',
     }, ctx);
     expect(searchResult.success).toBe(true);
 
-    // memory_write is NOT in whitelist â†?blocked
+    // memory_write is NOT in whitelist ï¿½?blocked
     const writeResult = await router.callTool('memory_write', {
       type: 'episodic',
       text: 'test',

@@ -25,11 +25,11 @@ import { createUploadsRouter } from './api/uploads.js';
 import { createMineruRouter } from './api/mineru.js';
 import { RunQueue } from './queue/run-queue.js';
 import { SSEManager } from './api/sse.js';
-import { AgentError } from '../utils/errors.js';
-import type { LLMConfig } from '../types/agent.js';
-import type { EmbeddingConfig } from '../types/embedding.js';
+import { AgentError } from '@openintern/utils';
+import type { LLMConfig } from '@openintern/types/agent.js';
+import type { EmbeddingConfig } from '@openintern/types/embedding.js';
 import { logger } from '@openintern/utils';
-import type { ErrorResponse } from '../types/api.js';
+import type { ErrorResponse } from '@openintern/types/api.js';
 import { createEmbeddingProvider } from './store/embedding-provider.js';
 import {
   CheckpointService,
@@ -39,6 +39,7 @@ import {
 } from './runtime/index.js';
 import {
   OPENINTERN_REPOSITORY_DEV_TYPE,
+  MemoryRepository,
   PlanRepository,
   RoleRepository,
   RunRepository,
@@ -154,9 +155,9 @@ export function createApp(config: Partial<ServerConfig> = {}): {
   const sseManager = new SSEManager();
 
   const repositoryMode = OPENINTERN_REPOSITORY_DEV_TYPE;
-  const memoryModeDbWarning =
-    'Repository mode is memory; skipping Postgres bootstrap. DATABASE_URL is optional in memory mode. ' +
-    'DB-backed memory features will throw explicit errors when called.';
+  const memoryModeDbInfo =
+    'Repository mode is memory; Postgres bootstrap is skipped by design. DATABASE_URL is optional in memory mode. ' +
+    'DB-backed memory features are unavailable in this mode and will return explicit unavailable messages when called.';
 
   let pool: IPostgresPool;
   let dbReady: Promise<void>;
@@ -167,8 +168,8 @@ export function createApp(config: Partial<ServerConfig> = {}): {
     pool = postgresPool;
     dbReady = runPostgresMigrations(postgresPool);
   } else {
-    logger.warn(memoryModeDbWarning);
-    pool = createUnavailablePostgresPool(memoryModeDbWarning);
+    logger.info(memoryModeDbInfo);
+    pool = createUnavailablePostgresPool(memoryModeDbInfo);
     dbReady = Promise.resolve();
   }
   const runRepository = new RunRepository(pool);
@@ -194,7 +195,8 @@ export function createApp(config: Partial<ServerConfig> = {}): {
     ...requestedEmbedding,
     dimension: 256,
   });
-  const memoryService = new MemoryService(pool, embeddingProvider);
+  const memoryRepository = new MemoryRepository(embeddingProvider, pool);
+  const memoryService = new MemoryService(memoryRepository);
 
   const feishuEnabledByConfig = Boolean(
     finalConfig.feishu?.enabled ??

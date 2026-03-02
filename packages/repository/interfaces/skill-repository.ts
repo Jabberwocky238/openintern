@@ -1,4 +1,4 @@
-import type { CreateSkill, Skill } from '../../../types/skill.js';
+import type { CreateSkill, Skill } from '@openintern/types/skill.js';
 
 export interface ISkillRepository {
   create(input: CreateSkill): Promise<Skill>;

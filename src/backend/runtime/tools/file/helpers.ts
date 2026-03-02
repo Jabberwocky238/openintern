@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { ToolError } from '../../../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 
 const READ_FILE_MAX_CHARS = 120_000;
 const TRAILING_WHITESPACE_REGEX = /[ \t]+$/u;

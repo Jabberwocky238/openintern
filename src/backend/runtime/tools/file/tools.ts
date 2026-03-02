@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import type { RuntimeTool, ToolContext } from '../_helpers.js';
 import { extractString, resolveWithinWorkDir } from '../_helpers.js';
-import { ToolError } from '../../../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 import {
   buildReplaceInFileError,
   extractPdfText,

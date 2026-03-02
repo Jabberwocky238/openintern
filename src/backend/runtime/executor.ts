@@ -1,10 +1,10 @@
-import type { QueuedRun } from '../../types/api.js';
-import type { Message, ToolCall, ToolResult } from '../../types/agent.js';
-import type { Event } from '../../types/events.js';
-import type { LLMConfig } from '../../types/agent.js';
+import type { QueuedRun } from '@openintern/types/api.js';
+import type { Message, ToolCall, ToolResult } from '@openintern/types/agent.js';
+import type { Event } from '@openintern/types/events.js';
+import type { LLMConfig } from '@openintern/types/agent.js';
 import type { SSEManager } from '../api/sse.js';
 import { logger } from '@openintern/utils';
-import { generateSpanId } from '../../utils/ids.js';
+import { generateSpanId } from '@openintern/utils';
 import { McpConnectionManager, type McpServerConfig } from './mcp-connection-manager.js';
 import { SwarmCoordinator } from './swarm-coordinator.js';
 import type { MemoryService } from './memory-service.js';

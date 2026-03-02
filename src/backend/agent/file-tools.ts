@@ -10,7 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { ToolError, SandboxError } from '../../utils/errors.js';
+import { ToolError, SandboxError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { PathGuard } from './sandbox/path-guard.js';
 import type { Tool } from './tool-router.js';

@@ -8,8 +8,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { MemoryItemSchema, type MemoryItem } from '../../types/memory.js';
-import { MemoryStoreError } from '../../utils/errors.js';
+import { MemoryItemSchema, type MemoryItem } from '@openintern/types/memory.js';
+import { MemoryStoreError } from '@openintern/utils';
 import type { HybridSearcher } from './hybrid-searcher.js';
 
 /**

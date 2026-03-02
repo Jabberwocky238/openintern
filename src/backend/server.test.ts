@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { createApp } from './server.js';
-import type { ErrorResponse } from '../types/api.js';
+import type { ErrorResponse } from '@openintern/types/api.js';
 
 interface HealthResponse {
   status: string;

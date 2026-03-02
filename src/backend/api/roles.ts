@@ -10,8 +10,8 @@
  */
 
 import { Router, type Request, type Response } from 'express';
-import { CreateRoleSchema } from '../../types/orchestrator.js';
-import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
+import { CreateRoleSchema } from '@openintern/types/orchestrator.js';
+import { AgentError, NotFoundError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import type { IRoleRepository } from '@openintern/repository';
 

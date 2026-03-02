@@ -14,8 +14,8 @@ import type {
   Message,
   ToolDefinition,
   ToolCall,
-} from '../../types/agent.js';
-import { getMessageText } from '../../types/agent.js';
+} from '@openintern/types/agent.js';
+import { getMessageText } from '@openintern/types/agent.js';
 import { logger } from '@openintern/utils';
 import { OpenAIClient } from './openai-client.js';
 import { AnthropicClient } from './anthropic-client.js';

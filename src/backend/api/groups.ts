@@ -20,11 +20,11 @@
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import type { QueuedRun } from '../../types/api.js';
-import { LLMConfigRequestSchema } from '../../types/api.js';
-import { CreateGroupSchema, AddMemberSchema } from '../../types/orchestrator.js';
-import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
-import { generateRunId } from '../../utils/ids.js';
+import type { QueuedRun } from '@openintern/types/api.js';
+import { LLMConfigRequestSchema } from '@openintern/types/api.js';
+import { CreateGroupSchema, AddMemberSchema } from '@openintern/types/orchestrator.js';
+import { AgentError, NotFoundError, ValidationError } from '@openintern/utils';
+import { generateRunId } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import type { IGroupRepository } from '@openintern/repository';
 import { resolveRequestScope } from '../runtime/request-scope.js';

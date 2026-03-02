@@ -9,7 +9,7 @@ import { PathGuard } from './path-guard.js';
 import { FileTypeGuard, type FileTypeGuardConfig } from './file-type-guard.js';
 import { ToolRateLimiter } from './rate-limiter.js';
 import { PermissionMatrix } from './permission-matrix.js';
-import { SandboxError } from '../../../utils/errors.js';
+import { SandboxError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 export { PathGuard } from './path-guard.js';

@@ -1,5 +1,5 @@
-import type { Skill } from '../../../types/skill.js';
-import type { RiskLevel } from '../../../types/skill.js';
+import type { Skill } from '@openintern/types/skill.js';
+import type { RiskLevel } from '@openintern/types/skill.js';
 import type { ToolMeta } from '../tool-policy.js';
 import { logger } from '@openintern/utils';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { QueuedRun } from '../../../types/api.js';
+import type { QueuedRun } from '@openintern/types/api.js';
 import { executePlanRun } from './plan-run.js';
 
 vi.mock('../planner/planner-client.js', () => ({

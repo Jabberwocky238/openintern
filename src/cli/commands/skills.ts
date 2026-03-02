@@ -7,6 +7,8 @@
 import { MCPClient, type MCPTool } from '../../backend/agent/mcp-client.js';
 import * as output from '../utils/output.js';
 
+const DEFAULT_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 export interface SkillsListOptions {
   format: 'table' | 'json';
 }
@@ -18,7 +20,7 @@ export async function skillsListCommand(
   options: SkillsListOptions
 ): Promise<void> {
   const client = new MCPClient({
-    pythonPath: process.env['PYTHON_PATH'] ?? 'python3',
+    pythonPath: process.env['PYTHON_PATH'] ?? DEFAULT_PYTHON_PATH,
     serverModule: 'mcp_server.server',
     cwd: 'python',
     timeout: 10000,

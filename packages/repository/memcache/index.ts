@@ -7,5 +7,6 @@ export { SkillRepository } from './skill-repository.js';
 export { PluginRepository } from './plugin-repository.js';
 export type { PluginRow, PluginJobRow, PluginKvRow } from './plugin-repository.js';
 export { FeishuRepository, type FeishuSourceState } from './feishu-repository.js';
+export { MemoryRepository } from './memory-repository.js';
 export { MemoryRepositoryStore, defaultMemoryRepositoryStore } from './store.js';
 

@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { createApp } from '../server.js';
-import type { CreateRunResponse, ListRunsResponse, ErrorResponse } from '../../types/api.js';
+import type { CreateRunResponse, ListRunsResponse, ErrorResponse } from '@openintern/types/api.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 const TEST_SCOPE = {

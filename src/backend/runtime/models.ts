@@ -1,4 +1,4 @@
-import type { LLMConfigRequest } from '../../types/api.js';
+import type { LLMConfigRequest } from '@openintern/types/api.js';
 import type { ScopeContext } from './scope.js';
 
 export type RunStatus = 'pending' | 'running' | 'waiting' | 'suspended' | 'completed' | 'failed' | 'cancelled';
@@ -6,7 +6,7 @@ export type RunMode = 'single' | 'group' | 'plan_execute';
 
 /**
  * Permissions delegated from a parent PA run to a child group run.
- * Used to enforce permission intersection: Group Agent permissions = PA permissions âˆ?Role permissions.
+ * Used to enforce permission intersection: Group Agent permissions = PA permissions ï¿½?Role permissions.
  */
 export interface DelegatedPermissions {
   allowed_tools?: string[];

@@ -1,5 +1,5 @@
-import type { Message } from '../../types/agent.js';
-import { getMessageText } from '../../types/agent.js';
+import type { Message } from '@openintern/types/agent.js';
+import { getMessageText } from '@openintern/types/agent.js';
 import { logger } from '@openintern/utils';
 
 export interface CompactionResult {

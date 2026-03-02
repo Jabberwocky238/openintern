@@ -1,9 +1,9 @@
-import type { Event, EventType } from '../../types/events.js';
-import type { Role } from '../../types/orchestrator.js';
+import type { Event, EventType } from '@openintern/types/events.js';
+import type { Role } from '@openintern/types/orchestrator.js';
 import type { AgentRunner, RunnerContext, RunnerResult } from './agent-runner.js';
 import type { RoleRunnerFactory } from './role-runner-factory.js';
 import type { ScopeContext } from './scope.js';
-import { generateSpanId, generateStepId } from '../../utils/ids.js';
+import { generateSpanId, generateStepId } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -158,7 +158,7 @@ export class SerialOrchestrator {
               }
             );
 
-            // Lead produced output �?orchestration complete
+            // Lead produced output �?orchestration complete
             yield this.createOrchestratorEvent(
               ctx,
               generateStepId(totalSteps),

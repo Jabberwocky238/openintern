@@ -1,5 +1,5 @@
-import type { Scope } from '../../types/scope.js';
-import type { MemoryScope } from '../../types/memory.js';
+import type { Scope } from '@openintern/types/scope.js';
+import type { MemoryScope } from '@openintern/types/memory.js';
 
 export interface ScopeContext {
   orgId: string;

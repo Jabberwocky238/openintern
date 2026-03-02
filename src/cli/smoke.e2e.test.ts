@@ -6,8 +6,8 @@ import { createServer as createHttpServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createApp, type ServerConfig } from '../backend/server.js';
-import type { Event } from '../types/events.js';
-import type { RunMeta } from '../types/run.js';
+import type { Event } from '@openintern/types/events.js';
+import type { RunMeta } from '@openintern/types/run.js';
 import { closeSharedPostgresPool } from '../backend/repository/postgres/index.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;

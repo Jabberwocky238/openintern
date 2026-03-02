@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { EventStore } from './event-store.js';
-import type { Event, RunStartedEvent, ToolCalledEvent } from '../../types/events.js';
+import type { Event, RunStartedEvent, ToolCalledEvent } from '@openintern/types/events.js';
 
 describe('EventStore', () => {
   let tempDir: string;

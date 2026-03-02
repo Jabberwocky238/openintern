@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import type { RuntimeTool, ToolContext } from '../_helpers.js';
 import { extractString, resolveWithinWorkDir } from '../_helpers.js';
-import { ToolError } from '../../../../utils/errors.js';
+import { ToolError } from '@openintern/utils';
 
 export function register(ctx: ToolContext): RuntimeTool[] {
   return [

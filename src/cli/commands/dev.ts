@@ -8,6 +8,8 @@ import { createServer, type ServerInstance } from '../../backend/server.js';
 import { loadConfig, toLLMConfig, toPlannerLLMConfig } from '../../config/loader.js';
 import * as output from '../utils/output.js';
 
+const DEFAULT_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 export interface DevOptions {
   port: number;
   mcpStdio: boolean;
@@ -103,7 +105,7 @@ export async function devCommand(options: DevOptions): Promise<void> {
     }
     serverConfig.mcp = {
       enabled: options.mcpStdio,
-      pythonPath: 'python3',
+      pythonPath: process.env['PYTHON_PATH'] ?? DEFAULT_PYTHON_PATH,
       serverModule: 'mcp_server.server',
       cwd: 'python',
       timeoutMs: 30000,

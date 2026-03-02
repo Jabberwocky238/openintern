@@ -1,5 +1,5 @@
-import type { QueuedRun } from '../../../types/api.js';
-import type { LLMConfig, Message, ContentPart } from '../../../types/agent.js';
+import type { QueuedRun } from '@openintern/types/api.js';
+import type { LLMConfig, Message, ContentPart } from '@openintern/types/agent.js';
 import type { RuntimeExecutorConfig } from '../executor.js';
 import type { RuntimeToolRouter } from '../tool-router.js';
 import type { ToolCallScheduler } from '../tool-scheduler.js';

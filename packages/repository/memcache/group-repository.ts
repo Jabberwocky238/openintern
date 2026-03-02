@@ -1,4 +1,4 @@
-import type { AddMember, CreateGroup, Group, GroupMember } from '../../../types/orchestrator.js';
+import type { AddMember, CreateGroup, Group, GroupMember } from '@openintern/types/orchestrator.js';
 import { NotFoundError } from '@openintern/utils';
 import { generateAgentInstanceId, generateGroupId, generateGroupMemberId } from '@openintern/utils';
 import type { IGroupRepository } from '../interfaces/group-repository.js';

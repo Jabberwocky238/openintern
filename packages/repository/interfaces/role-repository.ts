@@ -1,4 +1,4 @@
-import type { CreateRole, Role } from '../../../types/orchestrator.js';
+import type { CreateRole, Role } from '@openintern/types/orchestrator.js';
 
 export interface IRoleRepository {
   create(input: CreateRole): Promise<Role>;

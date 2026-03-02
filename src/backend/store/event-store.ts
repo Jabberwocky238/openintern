@@ -9,8 +9,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
-import { EventSchema, type Event } from '../../types/events.js';
-import { EventStoreError } from '../../utils/errors.js';
+import { EventSchema, type Event } from '@openintern/types/events.js';
+import { EventStoreError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 /**

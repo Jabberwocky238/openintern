@@ -1,11 +1,11 @@
-import type { LLMConfig, Message, ToolCall, ContentPart, LLMResponse } from '../../types/agent.js';
-import { getMessageText } from '../../types/agent.js';
-import type { Event, EventType } from '../../types/events.js';
+import type { LLMConfig, Message, ToolCall, ContentPart, LLMResponse } from '@openintern/types/agent.js';
+import { getMessageText } from '@openintern/types/agent.js';
+import type { Event, EventType } from '@openintern/types/events.js';
 import type { ScopeContext } from './scope.js';
 import { createLLMClient, type ILLMClient } from '../agent/llm-client.js';
 import { TokenCounter } from '../agent/token-counter.js';
 import { detectOrphanedToolCalls, generateSyntheticResults } from '../agent/orphan-detector.js';
-import { generateSpanId, generateStepId } from '../../utils/ids.js';
+import { generateSpanId, generateStepId } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { CheckpointService } from './checkpoint-service.js';
 import { CompactionService } from './compaction-service.js';
@@ -14,7 +14,7 @@ import { PromptComposer, type ComposeInput, type SkillInjection } from './prompt
 import { RuntimeToolRouter } from './tool-router.js';
 import { TokenBudgetManager } from './token-budget-manager.js';
 import { ToolCallScheduler, RunSuspendedError } from './tool-scheduler.js';
-import type { ToolResult } from '../../types/agent.js';
+import type { ToolResult } from '@openintern/types/agent.js';
 import type { AgentContext } from './tool-policy.js';
 import type { GroupWithRoles } from '@openintern/repository';
 import { formatToolResultMessageContent, summarizeToolResultForEvent } from './tool-result-content.js';
@@ -467,7 +467,7 @@ export class SingleAgentRunner implements AgentRunner {
             if (firstToolCall) {
               messages.push({
                 role: 'tool',
-                content: 'Error: Doom loop detected ï¿?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
+                content: 'Error: Doom loop detected ï¿½?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
                 toolCallId: firstToolCall.id,
               });
             }
@@ -623,13 +623,13 @@ export class SingleAgentRunner implements AgentRunner {
     ctx: RunnerContext,
     stepId: string,
     rootSpan: string
-  ): AsyncGenerator<Event, import('../../types/agent.js').LLMResponse, void> {
+  ): AsyncGenerator<Event, import('@openintern/types/agent.js').LLMResponse, void> {
     const llmOptions = ctx.abortSignal ? { signal: ctx.abortSignal } : undefined;
     const stream = llmClient.chatStream!(contextMessages, tools, llmOptions);
     let fullContent = '';
     let tokenIndex = 0;
     let finalToolCalls: ToolCall[] | undefined;
-    let finalUsage: import('../../types/agent.js').LLMResponse['usage'] = {
+    let finalUsage: import('@openintern/types/agent.js').LLMResponse['usage'] = {
       promptTokens: 0,
       completionTokens: 0,
       totalTokens: 0,
@@ -932,6 +932,7 @@ export class SingleAgentRunner implements AgentRunner {
     });
   }
 }
+
 
 
 

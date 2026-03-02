@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": [
+    "./index.ts",
+    "./agent.ts",
+    "./api.ts",
+    "./embedding.ts",
+    "./events.ts",
+    "./feishu.ts",
+    "./memory.ts",
+    "./mineru.ts",
+    "./orchestrator.ts",
+    "./run.ts",
+    "./scope.ts",
+    "./skill.ts",
+    "./upload.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

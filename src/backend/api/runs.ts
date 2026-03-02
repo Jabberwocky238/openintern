@@ -22,10 +22,10 @@ import {
   type GetRunEventsResponse,
   type ListRunsResponse,
   type QueuedRun,
-} from '../../types/api.js';
-import type { RunMeta } from '../../types/run.js';
-import { generateRunId } from '../../utils/ids.js';
-import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
+} from '@openintern/types/api.js';
+import type { RunMeta } from '@openintern/types/run.js';
+import { generateRunId } from '@openintern/utils';
+import { AgentError, NotFoundError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { RunQueue } from '../queue/run-queue.js';
 import { SSEManager } from './sse.js';
@@ -437,8 +437,8 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
           };
 
           // Write event and broadcast via SSE
-          await eventService.write(event as unknown as import('../../types/events.js').Event);
-          sseManager.broadcastToRun(runId, event as unknown as import('../../types/events.js').Event);
+          await eventService.write(event as unknown as import('@openintern/types/events.js').Event);
+          sseManager.broadcastToRun(runId, event as unknown as import('@openintern/types/events.js').Event);
 
           logger.info('User message injected into run', { runId, role: body.role ?? 'user' });
           res.json({ success: true, run_id: runId });

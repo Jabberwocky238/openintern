@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { SSEManager } from './sse.js';
 import type { Response } from 'express';
-import type { Event } from '../../types/events.js';
+import type { Event } from '@openintern/types/events.js';
 
 interface MockResponse {
   setHeader: Mock;

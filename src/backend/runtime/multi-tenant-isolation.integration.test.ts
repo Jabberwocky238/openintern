@@ -4,13 +4,16 @@ import path from 'node:path';
 import { createServer as createHttpServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { runPostgresMigrations } from '@openintern/repository';
-import { createPostgresPool } from '../repository/postgres/index.js';
+import {
+  closeSharedPostgresPool,
+  MemoryRepository,
+  runPostgresMigrations,
+} from '@openintern/repository';
 import { createEmbeddingProvider } from '../store/embedding-provider.js';
 import { MemoryService } from './memory-service.js';
 import { createApp, type ServerConfig } from '../server.js';
-import type { CreateRunResponse } from '../../types/api.js';
-import type { MemoryScope } from '../../types/memory.js';
+import type { CreateRunResponse } from '@openintern/types/api.js';
+import type { MemoryScope } from '@openintern/types/memory.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 
@@ -125,18 +128,18 @@ async function stopTestServer(
 describeIfDatabase('Multi-tenant isolation regression (Postgres)', () => {
   const cleanup: Array<() => Promise<void>> = [];
   let memoryService: MemoryService;
-  let memoryPool: ReturnType<typeof createPostgresPool>;
 
   beforeAll(async () => {
-    memoryPool = createPostgresPool();
-    await runPostgresMigrations(memoryPool);
-    memoryService = new MemoryService(
-      memoryPool,
+    await runPostgresMigrations();
+    const memoryRepository = new MemoryRepository(
       createEmbeddingProvider({
         provider: 'hash',
         dimension: 256,
         alpha: 0.6,
       })
+    );
+    memoryService = new MemoryService(
+      memoryRepository
     );
   });
 
@@ -150,7 +153,7 @@ describeIfDatabase('Multi-tenant isolation regression (Postgres)', () => {
   });
 
   afterAll(async () => {
-    await memoryPool.end();
+    await closeSharedPostgresPool();
   });
 
   it('keeps memory_search and memory_get isolated across scopes', async () => {

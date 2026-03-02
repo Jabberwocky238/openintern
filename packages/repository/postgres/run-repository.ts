@@ -1,8 +1,8 @@
 import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
-import type { LLMConfigRequest } from '../../../types/api.js';
-import type { RunMeta } from '../../../types/run.js';
+import type { LLMConfigRequest } from '@openintern/types/api.js';
+import type { RunMeta } from '@openintern/types/run.js';
 import { NotFoundError } from '@openintern/utils';
-import type { Event } from '../../../types/events.js';
+import type { Event } from '@openintern/types/events.js';
 import type {
   DelegatedPermissions,
   EventCursorPage,

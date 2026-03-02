@@ -7,7 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { SandboxError } from '../../../utils/errors.js';
+import { SandboxError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 export class PathGuard {

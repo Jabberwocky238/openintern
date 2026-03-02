@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AgentError } from '../../../../utils/errors.js';
+import { AgentError } from '@openintern/utils';
 import { MineruIngestService } from './ingest-service.js';
 import type { MemoryService } from '../../memory-service.js';
 import type { MineruClient } from './client.js';

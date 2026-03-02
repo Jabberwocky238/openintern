@@ -2,8 +2,8 @@ import type { IRunRepository } from '@openintern/repository';
 import type { IGroupRepository } from '@openintern/repository';
 import type { DelegatedPermissions, RunRecord } from './models.js';
 import type { ScopeContext } from './scope.js';
-import { generateRunId } from '../../utils/ids.js';
-import { ToolError, NotFoundError } from '../../utils/errors.js';
+import { generateRunId } from '@openintern/utils';
+import { ToolError, NotFoundError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 
 export interface EscalationServiceConfig {

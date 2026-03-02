@@ -7,10 +7,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { RunMetaSchema, type RunMeta } from '../../types/run.js';
-import type { Event } from '../../types/events.js';
+import { RunMetaSchema, type RunMeta } from '@openintern/types/run.js';
+import type { Event } from '@openintern/types/events.js';
 import { EventStore } from './event-store.js';
-import { ProjectionStoreError } from '../../utils/errors.js';
+import { ProjectionStoreError } from '@openintern/utils';
 
 /**
  * ProjectionStore class for generating and managing run metadata

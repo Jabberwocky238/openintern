@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { EventStore } from '../../backend/store/event-store.js';
-import type { Event } from '../../types/events.js';
+import type { Event } from '@openintern/types/events.js';
 import * as output from '../utils/output.js';
 
 export interface ExportOptions {

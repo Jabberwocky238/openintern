@@ -5,7 +5,7 @@ import type {
   FeishuSyncJob,
   FeishuSyncStats,
   FeishuSyncTrigger,
-} from '../../../types/feishu.js';
+} from '@openintern/types/feishu.js';
 
 export interface FeishuScope {
   orgId: string;

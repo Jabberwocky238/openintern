@@ -6,7 +6,7 @@
  */
 
 import { logger } from '@openintern/utils';
-import type { ContentPart } from '../../types/agent.js';
+import type { ContentPart } from '@openintern/types/agent.js';
 
 /** CJK Unicode ranges */
 const CJK_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}\u{2a700}-\u{2b73f}\u{2b740}-\u{2b81f}\u{2b820}-\u{2ceaf}\u{2ceb0}-\u{2ebef}\u{30000}-\u{3134f}\u3000-\u303f\uff00-\uffef]/gu;

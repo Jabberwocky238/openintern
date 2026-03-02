@@ -1,4 +1,4 @@
-import type { CreateSkill, Skill } from '../../../types/skill.js';
+import type { CreateSkill, Skill } from '@openintern/types/skill.js';
 import { NotFoundError } from '@openintern/utils';
 import { generateSkillId } from '@openintern/utils';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';

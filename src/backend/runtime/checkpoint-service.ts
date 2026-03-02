@@ -1,4 +1,4 @@
-﻿import type { Message } from '../../types/agent.js';
+﻿import type { Message } from '@openintern/types/agent.js';
 import type { IRunRepository } from '@openintern/repository';
 
 export interface SlimCheckpointState {

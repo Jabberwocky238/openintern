@@ -6,7 +6,7 @@
  * - ApiEmbeddingProvider: calls external embedding API
  */
 
-import type { EmbeddingConfig } from '../../types/embedding.js';
+import type { EmbeddingConfig } from '@openintern/types/embedding.js';
 import { logger } from '@openintern/utils';
 
 export interface IEmbeddingProvider {

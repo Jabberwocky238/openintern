@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Event } from '../../../types/events.js';
-import type { QueuedRun } from '../../../types/api.js';
+import type { Event } from '@openintern/types/events.js';
+import type { QueuedRun } from '@openintern/types/api.js';
 import { executeSingleRun } from './single-run.js';
 
 describe('executeSingleRun', () => {

@@ -1,5 +1,5 @@
 import type { IPostgresPool } from '../interfaces/postgres-client.js';
-import type { Skill, CreateSkill } from '../../../types/skill.js';
+import type { Skill, CreateSkill } from '@openintern/types/skill.js';
 import { generateSkillId } from '@openintern/utils';
 import { NotFoundError } from '@openintern/utils';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';

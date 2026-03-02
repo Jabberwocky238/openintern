@@ -20,7 +20,7 @@
     "./index.ts",
     "./interfaces/**/*.ts",
     "./shared/**/*.ts",
-    "./memory/**/*.ts",
+    "./memcache/**/*.ts",
     "./postgres/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]

@@ -11,7 +11,7 @@
 import { readFile } from 'fs/promises';
 import { resolve, extname } from 'path';
 import { existsSync } from 'fs';
-import type { AgentConfig, LLMConfig } from '../types/agent.js';
+import type { AgentConfig, LLMConfig } from '@openintern/types/agent.js';
 import { logger } from '@openintern/utils';
 
 const CONFIG_FILE_NAMES = [

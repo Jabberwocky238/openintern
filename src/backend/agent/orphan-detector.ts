@@ -6,7 +6,7 @@
  * finds such orphans and generates synthetic error results.
  */
 
-import type { Message, ToolCall } from '../../types/agent.js';
+import type { Message, ToolCall } from '@openintern/types/agent.js';
 import { logger } from '@openintern/utils';
 
 export interface OrphanedToolCall {

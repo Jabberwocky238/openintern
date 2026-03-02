@@ -1,4 +1,4 @@
-import type { LLMConfig, Message } from '../../../types/agent.js';
+import type { LLMConfig, Message } from '@openintern/types/agent.js';
 import { createLLMClient } from '../../agent/llm-client.js';
 import { PlanValidationError } from './plan-validator.js';
 

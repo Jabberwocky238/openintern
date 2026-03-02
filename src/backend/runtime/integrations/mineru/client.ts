@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import { logger } from '@openintern/utils';
-import type { MineruExtractOptions, MineruModelVersion, MineruTaskState } from '../../../../types/mineru.js';
+import type { MineruExtractOptions, MineruModelVersion, MineruTaskState } from '@openintern/types/mineru.js';
 
 interface MineruTokenCache {
   value: string;

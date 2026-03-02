@@ -19,6 +19,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@openintern/repository": ["src/backend/repository/index.ts"],
+      "@openintern/types": ["src/types/index.ts"],
+      "@openintern/types/*": ["src/types/*"],
       "@openintern/utils": ["src/utils/index.ts"]
     }
   },

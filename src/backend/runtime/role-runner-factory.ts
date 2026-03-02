@@ -1,5 +1,5 @@
-import type { LLMConfig } from '../../types/agent.js';
-import type { Role } from '../../types/orchestrator.js';
+import type { LLMConfig } from '@openintern/types/agent.js';
+import type { Role } from '@openintern/types/orchestrator.js';
 import { SingleAgentRunner, type AgentRunner, type SingleAgentRunnerConfig } from './agent-runner.js';
 import { CheckpointService } from './checkpoint-service.js';
 import { CompactionService } from './compaction-service.js';

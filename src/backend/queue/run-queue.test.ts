@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
 import { RunQueue } from './run-queue.js';
-import type { QueuedRun } from '../../types/api.js';
+import type { QueuedRun } from '@openintern/types/api.js';
 
 function createMockRun(overrides: Partial<QueuedRun> = {}): QueuedRun {
   return {

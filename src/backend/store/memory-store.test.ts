@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { MemoryStore } from './memory-store.js';
-import type { MemoryItem } from '../../types/memory.js';
+import type { MemoryItem } from '@openintern/types/memory.js';
 
 describe('MemoryStore', () => {
   let tempDir: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Message } from '../../types/agent.js';
+import type { Message } from '@openintern/types/agent.js';
 import { PromptComposer } from './prompt-composer.js';
 
 function composeWithHistory(history: Message[], maxHistoryMessages: number): Message[] {

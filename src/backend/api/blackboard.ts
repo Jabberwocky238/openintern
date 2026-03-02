@@ -9,8 +9,8 @@
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import { MemoryTypeSchema } from '../../types/memory.js';
-import { AgentError, ValidationError } from '../../utils/errors.js';
+import { MemoryTypeSchema } from '@openintern/types/memory.js';
+import { AgentError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import type { IGroupRepository } from '@openintern/repository';
 import { MemoryService } from '../runtime/memory-service.js';

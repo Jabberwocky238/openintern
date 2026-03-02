@@ -5,7 +5,7 @@
  * Fatal: validation, permission, sandbox, unknown
  */
 
-import { ValidationError, LLMError } from '../../utils/errors.js';
+import { ValidationError, LLMError } from '@openintern/utils';
 
 export type ErrorCategory = 'retryable' | 'fatal';
 

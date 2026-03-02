@@ -7,11 +7,11 @@
  */
 
 import { Router, type NextFunction, type Request, type Response } from 'express';
-import { NotFoundError, ValidationError } from '../../utils/errors.js';
+import { NotFoundError, ValidationError } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { resolveRequestScope } from '../runtime/request-scope.js';
 import { UploadService } from '../runtime/upload-service.js';
-import { MAX_FILE_SIZE } from '../../types/upload.js';
+import { MAX_FILE_SIZE } from '@openintern/types/upload.js';
 
 export interface UploadsRouterConfig {
   uploadService: UploadService;

@@ -8,15 +8,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { logger } from '@openintern/utils';
-import { generateUploadId } from '../../utils/ids.js';
-import { NotFoundError, ValidationError } from '../../utils/errors.js';
+import { generateUploadId } from '@openintern/utils';
+import { NotFoundError, ValidationError } from '@openintern/utils';
 import {
   type UploadRecord,
   MAX_FILE_SIZE,
   isImageMimeType,
   isTextMimeType,
-} from '../../types/upload.js';
-import type { ContentPart } from '../../types/agent.js';
+} from '@openintern/types/upload.js';
+import type { ContentPart } from '@openintern/types/agent.js';
 import type { ScopeContext } from './scope.js';
 
 export class UploadService {

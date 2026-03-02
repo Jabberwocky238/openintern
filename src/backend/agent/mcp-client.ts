@@ -136,7 +136,9 @@ export class MCPClient extends EventEmitter {
 
     this.process.on('error', (err) => {
       logger.error('MCP server error', { error: err.message });
-      this.emit('error', err);
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', err);
+      }
     });
   }
 

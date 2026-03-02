@@ -5,9 +5,9 @@ import type { AddressInfo } from 'node:net';
 import { createServer as createHttpServer, type Server } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createApp, type ServerConfig } from '../server.js';
-import type { Event } from '../../types/events.js';
-import type { CreateRunResponse, GetRunEventsResponse } from '../../types/api.js';
-import type { RunMeta } from '../../types/run.js';
+import type { Event } from '@openintern/types/events.js';
+import type { CreateRunResponse, GetRunEventsResponse } from '@openintern/types/api.js';
+import type { RunMeta } from '@openintern/types/run.js';
 import type { RunExecutor } from '../queue/run-queue.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;

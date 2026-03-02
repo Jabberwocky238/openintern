@@ -1,4 +1,4 @@
-import type { AddMember, CreateGroup, Group, GroupMember } from '../../../types/orchestrator.js';
+import type { AddMember, CreateGroup, Group, GroupMember } from '@openintern/types/orchestrator.js';
 
 export interface GroupRoleMemberView {
   role_id: string;

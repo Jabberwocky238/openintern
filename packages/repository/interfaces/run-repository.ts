@@ -1,5 +1,5 @@
-import type { Event } from '../../../types/events.js';
-import type { RunMeta } from '../../../types/run.js';
+import type { Event } from '@openintern/types/events.js';
+import type { RunMeta } from '@openintern/types/run.js';
 import type { IPostgresClient } from './postgres-client.js';
 import type {
   DelegatedPermissions,

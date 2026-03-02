@@ -8,11 +8,11 @@
  * - Error handling and timeout control
  */
 
-import type { ToolDefinition, ToolResult } from '../../types/agent.js';
-import type { EmbeddingConfig } from '../../types/embedding.js';
+import type { ToolDefinition, ToolResult } from '@openintern/types/agent.js';
+import type { EmbeddingConfig } from '@openintern/types/embedding.js';
 import { MemoryStore } from '../store/memory-store.js';
-import { ToolError } from '../../utils/errors.js';
-import { generateMemoryId } from '../../utils/ids.js';
+import { ToolError } from '@openintern/utils';
+import { generateMemoryId } from '@openintern/utils';
 import { logger } from '@openintern/utils';
 import { createFileTools } from './file-tools.js';
 import { ToolSandbox, type ToolSandboxConfig } from './sandbox/index.js';

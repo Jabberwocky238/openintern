@@ -14,7 +14,7 @@ import type {
   RunFailedEvent,
   ToolCalledEvent,
   ToolResultEvent,
-} from '../../types/events.js';
+} from '@openintern/types/events.js';
 
 describe('ProjectionStore', () => {
   let tempDir: string;

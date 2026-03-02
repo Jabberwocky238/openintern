@@ -1,8 +1,8 @@
-﻿import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
 import { runPostgresMigrations } from '@openintern/repository';
 import { createPostgresPool } from '../repository/postgres/index.js';
-import { generateRunId } from '../../utils/ids.js';
-import type { Message } from '../../types/agent.js';
+import { generateRunId } from '@openintern/utils';
+import type { Message } from '@openintern/types/agent.js';
 import { CheckpointService } from './checkpoint-service.js';
 import { RunRepository, type IRunRepository, type IPostgresPool } from '@openintern/repository';
 

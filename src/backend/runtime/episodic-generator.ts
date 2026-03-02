@@ -1,5 +1,5 @@
-import type { Event } from '../../types/events.js';
-import type { MemoryScope } from '../../types/memory.js';
+import type { Event } from '@openintern/types/events.js';
+import type { MemoryScope } from '@openintern/types/memory.js';
 import type { MemoryService } from './memory-service.js';
 import type { EventService } from './event-service.js';
 import type { ScopeContext } from './scope.js';
