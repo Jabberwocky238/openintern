@@ -11,7 +11,7 @@ import type {
   RunMode,
   RunRecord,
   RunStatus,
-} from '../../../backend/runtime/models.js';
+} from '../../runtime/models.js';
 import { appendScopePredicate, type ScopeContext } from '../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 

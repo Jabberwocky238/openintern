@@ -7,7 +7,7 @@
  */
 
 import type { EmbeddingConfig } from '../../types/embedding.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface IEmbeddingProvider {
   readonly dimension: number;

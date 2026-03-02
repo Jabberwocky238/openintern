@@ -18,7 +18,7 @@ import type { MemoryItem } from '../../types/memory.js';
 import { MemoryStore } from '../store/memory-store.js';
 import { TokenCounter } from './token-counter.js';
 import { ContextTrimmer } from './context-trimmer.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 const DEFAULT_SYSTEM_PROMPT = `You are a helpful AI assistant. You have access to tools that are provided via the function calling interface â€?use them when appropriate.
 

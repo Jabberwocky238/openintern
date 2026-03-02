@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Blackboard API - Group blackboard memory endpoints
  *
  * Endpoints:
@@ -11,7 +11,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { MemoryTypeSchema } from '../../types/memory.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { IGroupRepository } from '@openintern/repository';
 import { MemoryService } from '../runtime/memory-service.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';

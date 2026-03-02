@@ -1,6 +1,6 @@
 ﻿import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
 import { runPostgresMigrations } from '@openintern/repository';
-import { createPostgresPool } from '../../packages/repository/postgres/index.js';
+import { createPostgresPool } from '../repository/postgres/index.js';
 import { generateRunId } from '../../utils/ids.js';
 import type { Message } from '../../types/agent.js';
 import { CheckpointService } from './checkpoint-service.js';

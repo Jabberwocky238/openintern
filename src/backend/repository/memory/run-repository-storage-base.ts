@@ -1,5 +1,5 @@
 import type { Event } from '../../../types/events.js';
-import type { RunDependency } from '../../../backend/runtime/models.js';
+import type { RunDependency } from '../../runtime/models.js';
 import type { ScopeContext } from '../shared/scope.js';
 import type { RunMessageRecord } from '../interfaces/run-repository.js';
 import type { IPostgresClient } from '../interfaces/postgres-client.js';

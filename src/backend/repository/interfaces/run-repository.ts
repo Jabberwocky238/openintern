@@ -7,7 +7,7 @@ import type {
   RunCreateInput,
   RunDependency,
   RunRecord,
-} from '../../../backend/runtime/models.js';
+} from '../../runtime/models.js';
 import type { ScopeContext } from '../shared/scope.js';
 
 export interface RunMessageRecord {

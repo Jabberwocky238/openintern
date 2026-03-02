@@ -10,7 +10,7 @@ import { CompactionService } from '../compaction-service.js';
 import { PromptComposer } from '../prompt-composer.js';
 import { TokenBudgetManager } from '../token-budget-manager.js';
 import { UploadService } from '../upload-service.js';
-import { logger } from '../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { consumeEventStream } from './event-consumer.js';
 
 type Scope = { orgId: string; userId: string; projectId: string | null };

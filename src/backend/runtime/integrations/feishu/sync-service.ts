@@ -1,4 +1,4 @@
-﻿import { logger } from '../../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { MemoryScope } from '../../../../types/memory.js';
 import {
   FeishuChunkingConfigSchema,
@@ -436,7 +436,7 @@ export class FeishuSyncService {
     };
 
     for (const token of connector.config.file_tokens) {
-      // 浼樺厛灏濊瘯 Drive 鎺㈡祴绫诲瀷锛岃嫢鏉冮檺涓嶈冻/鎺ュ彛涓嶅彲鐢ㄥ垯鎸?docx token 鍏滃簳銆?
+      // 优先尝试 Drive 探测类型，若权限不足/接口不可用则�?docx token 兜底�?
       try {
         const file = await client.getDriveFile(token);
         if (file) {
@@ -486,7 +486,7 @@ export class FeishuSyncService {
     }
 
     for (const wikiToken of connector.config.wiki_node_tokens) {
-      // 褰撳墠鍏堟寜 docx token 鐩磋锛岄伩鍏嶅己渚濊禆 wiki:node scope銆?
+      // 当前先按 docx token 直读，避免强依赖 wiki:node scope�?
       push({
         kind: 'docx',
         file_token: wikiToken,

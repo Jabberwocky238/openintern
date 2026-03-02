@@ -7,7 +7,7 @@
 
 import type { IEmbeddingProvider } from './embedding-provider.js';
 import { VectorIndex } from './vector-index.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface HybridSearchResult {
   id: string;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Roles API - Role template CRUD endpoints
  *
  * Endpoints:
@@ -12,7 +12,7 @@
 import { Router, type Request, type Response } from 'express';
 import { CreateRoleSchema } from '../../types/orchestrator.js';
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { IRoleRepository } from '@openintern/repository';
 
 export interface RolesRouterConfig {

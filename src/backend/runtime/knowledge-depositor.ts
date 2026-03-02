@@ -1,8 +1,8 @@
-﻿import type { MemoryScope } from '../../types/memory.js';
+import type { MemoryScope } from '../../types/memory.js';
 import type { MemoryService } from './memory-service.js';
 import type { IRunRepository } from '@openintern/repository';
 import type { ScopeContext } from './scope.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface KnowledgeDepositorConfig {
   memoryService: MemoryService;

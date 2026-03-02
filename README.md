@@ -277,6 +277,12 @@ curl "http://localhost:3000/api/mineru/ingest-batch/<job_id>/progress"
 
 Configuration priority: config file < env vars < CLI flags < API request parameters.
 
+### Recent Changes (2026-03-02)
+
+- Recent 10 commits mainly focused on repository refactor.
+- Storage/repository layer was extracted from `src/backend/repository` into a standalone package: `src/packages/repository`.
+- Added/adjusted repository interfaces, memory/postgres implementations, and Postgres migration wiring to match the new package boundary.
+
 ### Key Environment Variables
 
 | Variable | Description | Default |

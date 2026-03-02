@@ -2,7 +2,7 @@ import type { Event } from '../../../types/events.js';
 import type { RuntimeExecutorConfig } from '../executor.js';
 import { EpisodicGenerator } from '../episodic-generator.js';
 import { KnowledgeDepositor } from '../knowledge-depositor.js';
-import { logger } from '../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 type Scope = { orgId: string; userId: string; projectId: string | null };
 type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';

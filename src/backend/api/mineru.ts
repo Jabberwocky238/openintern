@@ -14,7 +14,7 @@ import { promises as fs } from 'node:fs';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import Busboy from 'busboy';
 import { ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { resolveRequestScope } from '../runtime/request-scope.js';
 import type { MineruIngestService } from '../runtime/integrations/mineru/ingest-service.js';
 import type { MineruExtractOptions } from '../../types/mineru.js';

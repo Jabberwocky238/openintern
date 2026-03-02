@@ -13,7 +13,7 @@ import type { EmbeddingConfig } from '../../types/embedding.js';
 import { MemoryStore } from '../store/memory-store.js';
 import { ToolError } from '../../utils/errors.js';
 import { generateMemoryId } from '../../utils/ids.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { createFileTools } from './file-tools.js';
 import { ToolSandbox, type ToolSandboxConfig } from './sandbox/index.js';
 import { createEmbeddingProvider } from '../store/embedding-provider.js';

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { AgentError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 interface FeishuImWebhookResult {
   statusCode: number;

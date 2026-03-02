@@ -4,7 +4,7 @@ import type { AgentRunner, RunnerContext, RunnerResult } from './agent-runner.js
 import type { RoleRunnerFactory } from './role-runner-factory.js';
 import type { ScopeContext } from './scope.js';
 import { generateSpanId, generateStepId } from '../../utils/ids.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 // ─── Types ───────────────────────────────────────────────────
 

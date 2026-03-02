@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createApp, type ServerConfig } from '../backend/server.js';
 import type { Event } from '../types/events.js';
 import type { RunMeta } from '../types/run.js';
-import { closeSharedPostgresPool } from '../packages/repository/postgres/index.js';
+import { closeSharedPostgresPool } from '../backend/repository/postgres/index.js';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 

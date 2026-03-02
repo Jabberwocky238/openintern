@@ -12,7 +12,7 @@
 import type { Response } from 'express';
 import type { Event } from '../../types/events.js';
 import type { SSEMessage } from '../../types/api.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * SSE client connection

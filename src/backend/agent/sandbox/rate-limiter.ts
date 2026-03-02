@@ -3,7 +3,7 @@
  */
 
 import { SandboxError } from '../../../utils/errors.js';
-import { logger } from '../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface RateLimiterConfig {
   maxCalls: number;

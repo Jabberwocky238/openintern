@@ -1,7 +1,7 @@
 import type { Skill } from '../../../types/skill.js';
 import type { RiskLevel } from '../../../types/skill.js';
 import type { ToolMeta } from '../tool-policy.js';
-import { logger } from '../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * SkillRegistry provides a unified view of all registered skills

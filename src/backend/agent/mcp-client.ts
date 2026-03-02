@@ -4,7 +4,7 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * MCP Request interface (JSON-RPC 2.0)

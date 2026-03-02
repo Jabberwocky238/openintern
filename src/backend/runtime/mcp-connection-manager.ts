@@ -1,5 +1,5 @@
 import { MCPClient, type MCPClientConfig } from '../agent/mcp-client.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * Per-server configuration for MCP connections.

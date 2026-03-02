@@ -1,9 +1,9 @@
-﻿import type { QueuedRun } from '../../types/api.js';
+import type { QueuedRun } from '../../types/api.js';
 import type { Message, ToolCall, ToolResult } from '../../types/agent.js';
 import type { Event } from '../../types/events.js';
 import type { LLMConfig } from '../../types/agent.js';
 import type { SSEManager } from '../api/sse.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { generateSpanId } from '../../utils/ids.js';
 import { McpConnectionManager, type McpServerConfig } from './mcp-connection-manager.js';
 import { SwarmCoordinator } from './swarm-coordinator.js';
@@ -31,7 +31,7 @@ import { buildHumanOverrideNote, hasHumanModifiedArgs } from './hitl-note.js';
 type Scope = { orgId: string; userId: string; projectId: string | null };
 type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';
 
-// 鈹€鈹€鈹€ Config & Result 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── Config & Result ─────────────────────────────────────────
 
 export interface RuntimeExecutorConfig {
   runRepository: IRunRepository;
@@ -79,7 +79,7 @@ export interface RuntimeExecutorResult {
   approvalManager: ToolApprovalManager;
 }
 
-// 鈹€鈹€鈹€ Helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── Helpers ─────────────────────────────────────────────────
 
 function isCancellationError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -210,7 +210,7 @@ function withInternalToolCallId(
   return { ...args, __tool_call_id: toolCallId };
 }
 
-// 鈹€鈹€鈹€ Factory 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── Factory ─────────────────────────────────────────────────
 
 export function createRuntimeExecutor(config: RuntimeExecutorConfig): RuntimeExecutorResult {
   let sharedToolRouter: RuntimeToolRouter | null = null;

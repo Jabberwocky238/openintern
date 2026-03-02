@@ -6,7 +6,7 @@
 
 import type { RetryConfig } from '../../types/agent.js';
 import { classifyError } from './error-classifier.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,

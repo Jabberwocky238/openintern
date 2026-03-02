@@ -6,7 +6,7 @@ import { promises as fs } from 'node:fs';
 import { promisify } from 'node:util';
 import type { MemoryScope } from '../../../../types/memory.js';
 import { AgentError } from '../../../../utils/errors.js';
-import { logger } from '../../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { MemoryService } from '../../memory-service.js';
 import { MineruClient } from './client.js';
 import { normalizeMineruOutputToChunks } from './normalizer.js';

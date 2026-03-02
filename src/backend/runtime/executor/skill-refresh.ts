@@ -1,4 +1,4 @@
-﻿import { logger } from '../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { SkillRegistry } from '../skill/registry.js';
 import type { ISkillRepository } from '@openintern/repository';
 import type { RuntimeToolRouter } from '../tool-router.js';

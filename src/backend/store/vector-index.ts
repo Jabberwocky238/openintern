@@ -7,7 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface VectorEntry {
   id: string;

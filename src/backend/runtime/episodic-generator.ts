@@ -3,7 +3,7 @@ import type { MemoryScope } from '../../types/memory.js';
 import type { MemoryService } from './memory-service.js';
 import type { EventService } from './event-service.js';
 import type { ScopeContext } from './scope.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export class EpisodicGenerator {
   constructor(

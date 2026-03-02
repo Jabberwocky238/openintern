@@ -28,7 +28,7 @@ import { SSEManager } from './api/sse.js';
 import { AgentError } from '../utils/errors.js';
 import type { LLMConfig } from '../types/agent.js';
 import type { EmbeddingConfig } from '../types/embedding.js';
-import { logger } from '../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { ErrorResponse } from '../types/api.js';
 import { createEmbeddingProvider } from './store/embedding-provider.js';
 import {
@@ -55,7 +55,7 @@ import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js
 import { MineruClient } from './runtime/integrations/mineru/client.js';
 import { MineruIngestService } from './runtime/integrations/mineru/ingest-service.js';
 import { UploadService } from './runtime/upload-service.js';
-import { closeSharedPostgresPool, getPostgresPool } from '../packages/repository/postgres/index.js';
+import { closeSharedPostgresPool, getPostgresPool } from './repository/postgres/index.js';
 
 /**
  * Server configuration

@@ -1,4 +1,4 @@
-import { logger } from '../../../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 interface TenantTokenCache {
   value: string;

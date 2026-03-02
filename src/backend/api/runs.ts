@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Runs API - Postgres-backed run lifecycle endpoints
  *
  * Endpoints:
@@ -26,7 +26,7 @@ import {
 import type { RunMeta } from '../../types/run.js';
 import { generateRunId } from '../../utils/ids.js';
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { RunQueue } from '../queue/run-queue.js';
 import { SSEManager } from './sse.js';
 import { EventService } from '../runtime/event-service.js';
@@ -504,7 +504,7 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
     }
   );
 
-  // 鈹€鈹€ Tool approval endpoints 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Tool approval endpoints ──────────────────────────────────
 
   router.post(
     '/runs/:run_id/approve',

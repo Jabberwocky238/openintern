@@ -5,7 +5,7 @@ import { createServer as createHttpServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { runPostgresMigrations } from '@openintern/repository';
-import { createPostgresPool } from '../../packages/repository/postgres/index.js';
+import { createPostgresPool } from '../repository/postgres/index.js';
 import { createEmbeddingProvider } from '../store/embedding-provider.js';
 import { MemoryService } from './memory-service.js';
 import { createApp, type ServerConfig } from '../server.js';

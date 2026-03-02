@@ -3,7 +3,7 @@ import type { Event, EventType } from '../../types/events.js';
 import type { RuntimeToolRouter } from './tool-router.js';
 import type { AgentContext } from './tool-policy.js';
 import { generateSpanId } from '../../utils/ids.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { buildHumanOverrideNote, hasHumanModifiedArgs } from './hitl-note.js';
 import { summarizeToolResultForEvent } from './tool-result-content.js';
 

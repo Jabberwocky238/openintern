@@ -1,5 +1,5 @@
 import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
-import type { PlanRecord, PlanTaskRecord } from '../../../backend/runtime/models.js';
+import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
 import type { IPlanRepository } from '../interfaces/plan-repository.js';
 
 interface PlanRow {

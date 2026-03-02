@@ -5,7 +5,7 @@
  * Falls back to CJK-aware heuristic if tiktoken fails to initialize.
  */
 
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { ContentPart } from '../../types/agent.js';
 
 /** CJK Unicode ranges */

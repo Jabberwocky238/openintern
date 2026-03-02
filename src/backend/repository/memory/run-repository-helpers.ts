@@ -1,6 +1,6 @@
 import type { Event } from '../../../types/events.js';
 import type { RunMeta } from '../../../types/run.js';
-import type { RunRecord } from '../../../backend/runtime/models.js';
+import type { RunRecord } from '../../runtime/models.js';
 import { durationMs } from './helpers.js';
 
 type MessageType = NonNullable<Event['message_type']>;

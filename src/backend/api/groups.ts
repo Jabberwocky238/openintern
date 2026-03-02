@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Groups API - Group and member management endpoints
  *
  * Endpoints:
@@ -25,7 +25,7 @@ import { LLMConfigRequestSchema } from '../../types/api.js';
 import { CreateGroupSchema, AddMemberSchema } from '../../types/orchestrator.js';
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
 import { generateRunId } from '../../utils/ids.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { IGroupRepository } from '@openintern/repository';
 import { resolveRequestScope } from '../runtime/request-scope.js';
 import type { IRoleRepository } from '@openintern/repository';

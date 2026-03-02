@@ -1,5 +1,5 @@
 import type { BudgetState } from '../../types/agent.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface TokenBudgetManagerConfig {
   /** Maximum context window tokens for the model (default: 128000) */

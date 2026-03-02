@@ -10,7 +10,7 @@
 
 import type { Message } from '../../types/agent.js';
 import { TokenCounter } from './token-counter.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * A conversation turn: one user/assistant exchange plus any tool interactions

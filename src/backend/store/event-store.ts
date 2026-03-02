@@ -11,7 +11,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { EventSchema, type Event } from '../../types/events.js';
 import { EventStoreError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 /**
  * Index entry for pagination

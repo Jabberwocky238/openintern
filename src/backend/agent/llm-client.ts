@@ -16,7 +16,7 @@ import type {
   ToolCall,
 } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { OpenAIClient } from './openai-client.js';
 import { AnthropicClient } from './anthropic-client.js';
 import { GeminiClient } from './gemini-client.js';

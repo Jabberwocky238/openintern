@@ -7,7 +7,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { generateUploadId } from '../../utils/ids.js';
 import { NotFoundError, ValidationError } from '../../utils/errors.js';
 import {

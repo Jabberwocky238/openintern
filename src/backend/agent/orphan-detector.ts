@@ -7,7 +7,7 @@
  */
 
 import type { Message, ToolCall } from '../../types/agent.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 
 export interface OrphanedToolCall {
   toolCall: ToolCall;

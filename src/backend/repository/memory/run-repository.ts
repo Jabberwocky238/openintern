@@ -6,7 +6,7 @@ import type {
   EventCursorPage,
   RunCreateInput,
   RunRecord,
-} from '../../../backend/runtime/models.js';
+} from '../../runtime/models.js';
 import type { ScopeContext } from '../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
 import { clone, matchesScope, nowIso } from './helpers.js';

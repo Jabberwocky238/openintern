@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Skills API - Skill registry CRUD endpoints
  *
  * Endpoints:
@@ -11,7 +11,7 @@
 import { Router, type Request, type Response } from 'express';
 import { CreateSkillSchema } from '../../types/skill.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import type { ISkillRepository } from '@openintern/repository';
 
 export interface SkillsRouterConfig {

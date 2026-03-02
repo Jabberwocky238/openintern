@@ -1,4 +1,4 @@
-﻿import { Router, type Request, type Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import {
   CreateFeishuConnectorRequestSchema,
   TriggerFeishuSyncRequestSchema,
@@ -7,7 +7,7 @@ import {
   type FeishuConnectorStatus,
 } from '../../types/feishu.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@openintern/utils';
 import { resolveRequestScope } from '../runtime/request-scope.js';
 import type { IFeishuRepository } from '@openintern/repository';
 import { FeishuSyncService } from '../runtime/integrations/feishu/sync-service.js';
