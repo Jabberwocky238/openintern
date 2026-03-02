@@ -3,6 +3,7 @@ import type { Skill, CreateSkill } from '@openintern/types/skill.js';
 import { generateSkillId } from '@openintern/utils';
 import { NotFoundError } from '@openintern/utils';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';
+import { getPostgresPool } from './pool.js';
 
 interface SkillRow {
   id: string;
@@ -37,7 +38,11 @@ function mapSkillRow(row: SkillRow): Skill {
 }
 
 export class SkillRepository implements ISkillRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   async create(input: CreateSkill): Promise<Skill> {
     const id = generateSkillId();
@@ -100,6 +105,7 @@ export class SkillRepository implements ISkillRepository {
     return (result.rowCount ?? 0) > 0;
   }
 }
+
 
 
 

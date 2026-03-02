@@ -1,5 +1,6 @@
 import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { IPluginRepository } from '../interfaces/plugin-repository.js';
+import { getPostgresPool } from './pool.js';
 
 // ─── Row types ───────────────────────────────────────────
 
@@ -43,7 +44,11 @@ export interface PluginKvRow {
 // ─── Repository ──────────────────────────────────────────
 
 export class PluginRepository implements IPluginRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   // ── plugins CRUD ─────────────────────────────────────
 
@@ -200,5 +205,6 @@ export class PluginRepository implements IPluginRepository {
     );
   }
 }
+
 
 

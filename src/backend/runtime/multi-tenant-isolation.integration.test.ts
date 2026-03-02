@@ -5,9 +5,10 @@ import { createServer as createHttpServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
-  closeSharedPostgresPool,
+  closeRepository,
   MemoryRepository,
   runPostgresMigrations,
+  startRepository,
 } from '@openintern/repository';
 import { createEmbeddingProvider } from '../store/embedding-provider.js';
 import { MemoryService } from './memory-service.js';
@@ -130,6 +131,7 @@ describeIfDatabase('Multi-tenant isolation regression (Postgres)', () => {
   let memoryService: MemoryService;
 
   beforeAll(async () => {
+    await startRepository();
     await runPostgresMigrations();
     const memoryRepository = new MemoryRepository(
       createEmbeddingProvider({
@@ -153,7 +155,7 @@ describeIfDatabase('Multi-tenant isolation regression (Postgres)', () => {
   });
 
   afterAll(async () => {
-    await closeSharedPostgresPool();
+    await closeRepository();
   });
 
   it('keeps memory_search and memory_get isolated across scopes', async () => {

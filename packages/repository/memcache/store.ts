@@ -1,5 +1,5 @@
 import type { Event } from '@openintern/types/events.js';
-import type { PlanRecord, PlanTaskRecord, RunDependency, RunRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord, RunDependency, RunRecord } from '../../../src/backend/runtime/models.js';
 import type { Group, GroupMember, Role } from '@openintern/types/orchestrator.js';
 import type { Skill } from '@openintern/types/skill.js';
 import type { PluginJobRowView, PluginKvRowView, PluginRowView } from '../interfaces/plugin-repository.js';
@@ -72,3 +72,4 @@ export const defaultMemoryRepositoryStore = new MemoryRepositoryStore();
 export function resolveMemoryRepositoryStore(candidate?: unknown): MemoryRepositoryStore {
   return candidate instanceof MemoryRepositoryStore ? candidate : defaultMemoryRepositoryStore;
 }
+

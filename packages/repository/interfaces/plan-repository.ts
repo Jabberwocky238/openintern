@@ -1,4 +1,4 @@
-import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord } from '../../../src/backend/runtime/models.js';
 
 export interface CreatePlanTaskInput {
   taskId: string;
@@ -32,4 +32,5 @@ export interface IPlanRepository {
   listReadyTasksByRunId(runId: string): Promise<PlanTaskRecord[]>;
   markTasksRunning(runId: string, dispatches: TaskDispatchInput[]): Promise<void>;
 }
+
 

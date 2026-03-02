@@ -9,15 +9,15 @@ import type {
   MemoryWriteRequest,
   TieredSearchInput,
 } from '@openintern/types/memory.js';
-import type { IEmbeddingProvider } from '../../store/embedding-provider.js';
-import { splitIntoChunks } from '../../runtime/text-chunker.js';
+import type { IEmbeddingProvider } from '../../../src/backend/store/embedding-provider.js';
+import { splitIntoChunks } from '../../../src/backend/runtime/text-chunker.js';
 import { getPostgresPool } from './pool.js';
 import {
   appendScopePredicate,
   toScopeContext,
   toMemoryScopeContext,
   type MemoryScopeContext,
-} from '../../runtime/scope.js';
+} from '../../../src/backend/runtime/scope.js';
 
 interface MemoryRow {
   id: string;
@@ -867,6 +867,8 @@ export class MemoryRepository implements IMemoryRepository {
     );
   }
 }
+
+
 
 
 

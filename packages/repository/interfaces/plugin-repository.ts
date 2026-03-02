@@ -80,3 +80,4 @@ export interface IPluginRepository {
   upsertKv(pluginId: string, key: string, value: Record<string, unknown>): Promise<void>;
 }
 
+

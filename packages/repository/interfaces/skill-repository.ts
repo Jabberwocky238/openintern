@@ -9,3 +9,4 @@ export interface ISkillRepository {
   delete(id: string): Promise<boolean>;
 }
 
+

@@ -371,7 +371,7 @@ export async function executePlanRun(
   const taskState = summarizeTaskState(tasks);
   if (taskState.failedTask) {
     const reason = taskState.failedTask.error ?? `Task ${taskState.failedTask.taskId} failed`;
-    return failRun(config, run, deps.IPlanRepository, emit, 'PLAN_TASK_FAILED', reason);
+    return failRun(config, run, deps.planRepository, emit, 'PLAN_TASK_FAILED', reason);
   }
 
   if (taskState.completedCount === tasks.length) {
@@ -386,7 +386,7 @@ export async function executePlanRun(
     return failRun(
       config,
       run,
-      deps.IPlanRepository,
+      deps.planRepository,
       emit,
       'PLAN_STALLED',
       'No ready tasks and no running tasks remain'

@@ -64,3 +64,4 @@ export interface IMemoryRepository {
   ): Promise<Array<MemoryGetResponse & { group_id: string }>>;
 }
 
+

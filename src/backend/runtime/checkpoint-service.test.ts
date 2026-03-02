@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
-import { runPostgresMigrations } from '@openintern/repository';
-import { createPostgresPool } from '../repository/postgres/index.js';
+import { closeRepository, runPostgresMigrations, startRepository } from '@openintern/repository';
 import { generateRunId } from '@openintern/utils';
 import type { Message } from '@openintern/types/agent.js';
 import { CheckpointService } from './checkpoint-service.js';
@@ -93,9 +92,14 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
   }
 
   beforeAll(async () => {
-    pool = createPostgresPool();
-    await runPostgresMigrations(pool);
-    runs = new RunRepository(pool);
+    await startRepository();
+    await runPostgresMigrations();
+    const poolFactory = globalThis.__openintern_get_postgres_pool__;
+    if (!poolFactory) {
+      throw new Error('Postgres pool factory is not available');
+    }
+    pool = poolFactory();
+    runs = new RunRepository();
     service = new CheckpointService(runs);
   });
 
@@ -113,7 +117,7 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
   });
 
   afterAll(async () => {
-    await pool.end();
+    await closeRepository();
   });
 
   it('rolls back appended run_messages when checkpoint persistence fails', async () => {
@@ -193,6 +197,4 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
     expect(ordinals.rows.map((r) => r.ordinal)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 });
-
-
 

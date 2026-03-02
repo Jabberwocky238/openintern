@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createApp, type ServerConfig } from '../backend/server.js';
 import type { Event } from '@openintern/types/events.js';
 import type { RunMeta } from '@openintern/types/run.js';
-import { closeSharedPostgresPool } from '../backend/repository/postgres/index.js';
+import { closeRepository } from '@openintern/repository';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 
@@ -187,7 +187,7 @@ async function stopTestServer(
     });
   });
   await fs.promises.rm(testDir, { recursive: true, force: true });
-  await closeSharedPostgresPool();
+  await closeRepository();
 }
 
 describeIfDatabase('CLI smoke e2e', () => {

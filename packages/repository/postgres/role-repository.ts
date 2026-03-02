@@ -3,6 +3,7 @@ import type { Role, CreateRole } from '@openintern/types/orchestrator.js';
 import { generateRoleId } from '@openintern/utils';
 import { NotFoundError } from '@openintern/utils';
 import type { IRoleRepository } from '../interfaces/role-repository.js';
+import { getPostgresPool } from './pool.js';
 
 interface RoleRow {
   id: string;
@@ -37,7 +38,11 @@ function mapRoleRow(row: RoleRow): Role {
 }
 
 export class RoleRepository implements IRoleRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   async create(input: CreateRole): Promise<Role> {
     const id = generateRoleId();
@@ -182,6 +187,7 @@ export class RoleRepository implements IRoleRepository {
     };
   }
 }
+
 
 
 

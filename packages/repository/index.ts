@@ -73,12 +73,40 @@ export default selectedRepository;
 const MEMORY_MODE_MIGRATION_WARNING =
   'Repository mode is memory; skipping Postgres migrations.';
 
-export async function runPostgresMigrations(pool?: IPostgresPool): Promise<void> {
+type RepositoryStartOptions = {
+  databaseUrl?: string;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __openintern_get_postgres_pool__: (() => IPostgresPool) | undefined;
+}
+
+export async function startRepository(options: RepositoryStartOptions = {}): Promise<void> {
+  if (repositoryDevType === 'memory') {
+    return;
+  }
+  const pool = postgresRepository.getPostgresPool(
+    options.databaseUrl ? { connectionString: options.databaseUrl } : {}
+  );
+  globalThis.__openintern_get_postgres_pool__ = () => pool;
+}
+
+export async function closeRepository(): Promise<void> {
+  if (repositoryDevType === 'memory') {
+    return;
+  }
+  await postgresRepository.closeSharedPostgresPool();
+  globalThis.__openintern_get_postgres_pool__ = undefined;
+}
+
+export async function runPostgresMigrations(): Promise<void> {
   if (repositoryDevType === 'memory') {
     logger.warn(MEMORY_MODE_MIGRATION_WARNING);
     return;
   }
-  const targetPool = pool ?? postgresRepository.getPostgresPool();
+  const targetPool = globalThis.__openintern_get_postgres_pool__?.()
+    ?? postgresRepository.getPostgresPool();
   await postgresRepository.runPostgresMigrations(targetPool);
 }
 
@@ -107,3 +135,4 @@ export type PluginKvRow = import('./interfaces/plugin-repository.js').PluginKvRo
 export type FeishuRepository = import('./interfaces/feishu-repository.js').IFeishuRepository;
 export type MemoryRepository = import('./interfaces/memory-repository.js').IMemoryRepository;
 export type FeishuSourceState = import('./interfaces/feishu-repository.js').FeishuSourceStateView;
+

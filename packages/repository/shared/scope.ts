@@ -18,3 +18,4 @@ export function appendScopePredicate(
   clauses.push(`${prefix}user_id = $${userIndex}`);
   clauses.push(`${prefix}project_id IS NOT DISTINCT FROM $${projectIndex}`);
 }
+

@@ -16,7 +16,13 @@ export class MemoryService {
   constructor(private readonly repository: IMemoryRepository) {}
 
   async memory_write(input: MemoryWriteRequest): Promise<{ id: string }> {
-    return this.repository.memory_write(input);
+    return this.repository.memory_write({
+      type: input.type,
+      scope: input.scope,
+      text: input.text,
+      ...(input.metadata !== undefined ? { metadata: input.metadata } : {}),
+      ...(input.importance !== undefined ? { importance: input.importance } : {}),
+    });
   }
 
   async replace_archival_document(input: ReplaceArchivalDocumentInput): Promise<{ id: string; replaced: number }> {
@@ -76,7 +82,7 @@ export class MemoryService {
         blackboard: true,
         role_id: input.role_id,
       },
-      importance: input.importance,
+      ...(input.importance !== undefined ? { importance: input.importance } : {}),
     });
   }
 

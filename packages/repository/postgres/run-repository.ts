@@ -11,9 +11,10 @@ import type {
   RunMode,
   RunRecord,
   RunStatus,
-} from '../../runtime/models.js';
+} from '../../../src/backend/runtime/models.js';
 import { appendScopePredicate, type ScopeContext } from '../shared/scope.js';
 import type { IRunRepository } from '../interfaces/run-repository.js';
+import { getPostgresPool } from './pool.js';
 
 interface RunRow {
   id: string;
@@ -155,7 +156,11 @@ function resolveMessageType(
 }
 
 export class RunRepository implements IRunRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   async createRun(input: RunCreateInput): Promise<RunRecord> {
     const runMode = input.runMode ?? (input.groupId ? 'group' : 'single');
@@ -867,6 +872,7 @@ export class RunRepository implements IRunRepository {
     return row ? mapDepRow(row) : null;
   }
 }
+
 
 
 

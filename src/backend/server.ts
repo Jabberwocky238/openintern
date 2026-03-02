@@ -43,8 +43,9 @@ import {
   PlanRepository,
   RoleRepository,
   RunRepository,
+  startRepository,
+  closeRepository,
   runPostgresMigrations,
-  type IPostgresPool,
 } from '@openintern/repository';
 import { GroupRepository } from '@openintern/repository';
 import { SkillRepository } from '@openintern/repository';
@@ -56,7 +57,6 @@ import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js
 import { MineruClient } from './runtime/integrations/mineru/client.js';
 import { MineruIngestService } from './runtime/integrations/mineru/ingest-service.js';
 import { UploadService } from './runtime/upload-service.js';
-import { closeSharedPostgresPool, getPostgresPool } from './repository/postgres/index.js';
 
 /**
  * Server configuration
@@ -122,21 +122,6 @@ const DEFAULT_CONFIG: ServerConfig = {
   corsOrigins: '*',
 };
 
-function createUnavailablePostgresPool(reason: string): IPostgresPool {
-  const fail = async (): Promise<never> => {
-    throw new Error(reason);
-  };
-
-  return {
-    query: fail,
-    connect: async () => ({
-      query: fail,
-      release: () => undefined,
-    }),
-    end: async () => undefined,
-  };
-}
-
 /**
  * Create and configure the Express application
  */
@@ -159,25 +144,24 @@ export function createApp(config: Partial<ServerConfig> = {}): {
     'Repository mode is memory; Postgres bootstrap is skipped by design. DATABASE_URL is optional in memory mode. ' +
     'DB-backed memory features are unavailable in this mode and will return explicit unavailable messages when called.';
 
-  let pool: IPostgresPool;
   let dbReady: Promise<void>;
   if (repositoryMode === 'postgres') {
-    const postgresPool = getPostgresPool(
-      finalConfig.databaseUrl ? { connectionString: finalConfig.databaseUrl } : {}
-    );
-    pool = postgresPool;
-    dbReady = runPostgresMigrations(postgresPool);
+    dbReady = (async () => {
+      await startRepository({
+        ...(finalConfig.databaseUrl ? { databaseUrl: finalConfig.databaseUrl } : {}),
+      });
+      await runPostgresMigrations();
+    })();
   } else {
     logger.info(memoryModeDbInfo);
-    pool = createUnavailablePostgresPool(memoryModeDbInfo);
     dbReady = Promise.resolve();
   }
-  const runRepository = new RunRepository(pool);
-  const planRepository = new PlanRepository(pool);
-  const roleRepository = new RoleRepository(pool);
-  const groupRepository = new GroupRepository(pool);
-  const skillRepository = new SkillRepository(pool);
-  const pluginRepository = new PluginRepository(pool);
+  const runRepository = new RunRepository();
+  const planRepository = new PlanRepository();
+  const roleRepository = new RoleRepository();
+  const groupRepository = new GroupRepository();
+  const skillRepository = new SkillRepository();
+  const pluginRepository = new PluginRepository();
   const feishuRepository = new FeishuRepository(pluginRepository);
   const eventService = new EventService(runRepository);
   const checkpointService = new CheckpointService(runRepository);
@@ -195,7 +179,7 @@ export function createApp(config: Partial<ServerConfig> = {}): {
     ...requestedEmbedding,
     dimension: 256,
   });
-  const memoryRepository = new MemoryRepository(embeddingProvider, pool);
+  const memoryRepository = new MemoryRepository(embeddingProvider);
   const memoryService = new MemoryService(memoryRepository);
 
   const feishuEnabledByConfig = Boolean(
@@ -505,7 +489,7 @@ export function createServer(config: Partial<ServerConfig> = {}): ServerInstance
             if (err) {
               reject(err);
             } else {
-              void closeSharedPostgresPool()
+              void closeRepository()
                 .then(() => {
                   logger.info('Server stopped');
                   resolve();
@@ -514,7 +498,7 @@ export function createServer(config: Partial<ServerConfig> = {}): ServerInstance
             }
           });
         } else {
-          void closeSharedPostgresPool()
+          void closeRepository()
             .then(resolve)
             .catch(reject);
         }
@@ -564,6 +548,7 @@ if (isMainModule) {
 
   void server.start();
 }
+
 
 
 

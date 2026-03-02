@@ -18,12 +18,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@openintern/repository": ["src/backend/repository/index.ts"],
-      "@openintern/types": ["src/types/index.ts"],
-      "@openintern/types/*": ["src/types/*"],
-      "@openintern/utils": ["src/utils/index.ts"]
+      "@openintern/repository": ["packages/repository/index.ts"],
+      "@openintern/repository/*": ["packages/repository/*"],
+      "@openintern/types": ["packages/types/index.ts"],
+      "@openintern/types/*": ["packages/types/*"],
+      "@openintern/utils": ["packages/utils/index.ts"],
+      "@openintern/utils/*": ["packages/utils/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "packages/**/*"],
   "exclude": ["node_modules", "dist"]
 }

@@ -3,6 +3,7 @@ import type { Group, CreateGroup, GroupMember, AddMember } from '@openintern/typ
 import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '@openintern/utils';
 import { NotFoundError } from '@openintern/utils';
 import type { IGroupRepository } from '../interfaces/group-repository.js';
+import { getPostgresPool } from './pool.js';
 
 interface GroupRow {
   id: string;
@@ -65,7 +66,11 @@ function mapMemberRow(row: MemberRow): GroupMember {
 }
 
 export class GroupRepository implements IGroupRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   // ─── Group CRUD ──────────────────────────────────────────
 
@@ -381,5 +386,6 @@ export class GroupRepository implements IGroupRepository {
     });
   }
 }
+
 
 

@@ -1,6 +1,7 @@
 import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
-import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
+import type { PlanRecord, PlanTaskRecord } from '../../../src/backend/runtime/models.js';
 import type { IPlanRepository } from '../interfaces/plan-repository.js';
+import { getPostgresPool } from './pool.js';
 
 interface PlanRow {
   id: string | number;
@@ -100,7 +101,11 @@ function mapTaskRow(row: TaskRow): PlanTaskRecord {
 }
 
 export class PlanRepository implements IPlanRepository {
-  constructor(private readonly pool: IPostgresPool) {}
+  private readonly pool: IPostgresPool;
+
+  constructor(pool?: IPostgresPool) {
+    this.pool = pool ?? getPostgresPool();
+  }
 
   async getPlanByRunId(runId: string): Promise<PlanRecord | null> {
     const result = await this.pool.query<PlanRow>(
@@ -269,6 +274,7 @@ export class PlanRepository implements IPlanRepository {
     );
   }
 }
+
 
 
 

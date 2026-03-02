@@ -20,8 +20,8 @@
     "typecheck": "tsc --noEmit --project ./tsconfig.json"
   },
   "dependencies": {
-    "@openintern/types": "file:../../types",
-    "@openintern/utils": "file:../../utils",
+    "@openintern/types": "file:../types",
+    "@openintern/utils": "file:../utils",
     "pg": "^8.16.3"
   },
   "devDependencies": {
