@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EscalationService } from './escalation-service.js';
 import type { RunRepository } from '@openintern/repository';
 import type { GroupRepository } from '@openintern/repository';
@@ -395,5 +395,7 @@ describe('EscalationService', () => {
     });
   });
 });
+
+
 
 

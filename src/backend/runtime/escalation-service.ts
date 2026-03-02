@@ -1,4 +1,4 @@
-import type { IRunRepository } from '@openintern/repository';
+﻿import type { IRunRepository } from '@openintern/repository';
 import type { IGroupRepository } from '@openintern/repository';
 import type { DelegatedPermissions, RunRecord } from './models.js';
 import type { ScopeContext } from './scope.js';
@@ -227,6 +227,8 @@ export class EscalationService {
     };
   }
 }
+
+
 
 
 

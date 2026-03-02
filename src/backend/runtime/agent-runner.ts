@@ -1,4 +1,4 @@
-import type { LLMConfig, Message, ToolCall, ContentPart, LLMResponse } from '../../types/agent.js';
+﻿import type { LLMConfig, Message, ToolCall, ContentPart, LLMResponse } from '../../types/agent.js';
 import { getMessageText } from '../../types/agent.js';
 import type { Event, EventType } from '../../types/events.js';
 import type { ScopeContext } from './scope.js';
@@ -223,7 +223,7 @@ export class SingleAgentRunner implements AgentRunner {
           stepNumber: step,
         });
 
-        // ── Context budget check & auto-compaction ──
+        // 鈹€鈹€ Context budget check & auto-compaction 鈹€鈹€
         const compactionEvents = yield* this.maybeCompactContext(
           messages, ctx, stepId, rootSpan, step
         );
@@ -231,7 +231,7 @@ export class SingleAgentRunner implements AgentRunner {
           messages = compactionEvents.messages;
         }
 
-        // ── Memory retrieval ──
+        // 鈹€鈹€ Memory retrieval 鈹€鈹€
         const memoryQuery = this.buildMemoryQuery(messages);
         const memoryScope = {
           org_id: ctx.scope.orgId,
@@ -254,7 +254,7 @@ export class SingleAgentRunner implements AgentRunner {
             });
         lastMemoryHits = memoryHits;
 
-        // ── Compose prompt via PromptComposer ──
+        // 鈹€鈹€ Compose prompt via PromptComposer 鈹€鈹€
         const skills = this.config.toolRouter.listSkills();
         const tools = this.config.toolRouter.listTools();
         const composeInput: ComposeInput = {
@@ -297,7 +297,7 @@ export class SingleAgentRunner implements AgentRunner {
         contextMessages = preflight.contextMessages;
         messages = preflight.messages;
 
-        // ── LLM call ──
+        // 鈹€鈹€ LLM call 鈹€鈹€
         const llmStarted = Date.now();
         const llmOptions = ctx.abortSignal ? { signal: ctx.abortSignal } : undefined;
         const response = llmClient.chatStream
@@ -317,7 +317,7 @@ export class SingleAgentRunner implements AgentRunner {
           duration_ms: llmDuration,
         });
 
-        // ── Tool calls via ToolCallScheduler ──
+        // 鈹€鈹€ Tool calls via ToolCallScheduler 鈹€鈹€
         if (response.toolCalls && response.toolCalls.length > 0) {
           const normalizedToolCalls = this.normalizeToolCallsForStep(response.toolCalls, step);
           const toolHint = this.formatToolHint(normalizedToolCalls);
@@ -467,7 +467,7 @@ export class SingleAgentRunner implements AgentRunner {
             if (firstToolCall) {
               messages.push({
                 role: 'tool',
-                content: 'Error: Doom loop detected �?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
+                content: 'Error: Doom loop detected 锟?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
                 toolCallId: firstToolCall.id,
               });
             }
@@ -527,7 +527,7 @@ export class SingleAgentRunner implements AgentRunner {
 
         lookupOnlyToolStreak = 0;
 
-        // ── Final answer ──
+        // 鈹€鈹€ Final answer 鈹€鈹€
         const finalOutput = this.sanitizeFinalOutput(response.content);
         messages.push({ role: 'assistant', content: finalOutput });
         lastSavedMessageCount = await this.saveCheckpoint(ctx, stepId, messages, lastSavedMessageCount, memoryHits, lastToolResult);
@@ -932,5 +932,7 @@ export class SingleAgentRunner implements AgentRunner {
     });
   }
 }
+
+
 
 

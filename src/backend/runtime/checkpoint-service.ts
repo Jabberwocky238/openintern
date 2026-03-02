@@ -1,4 +1,4 @@
-import type { Message } from '../../types/agent.js';
+﻿import type { Message } from '../../types/agent.js';
 import type { IRunRepository } from '@openintern/repository';
 
 export interface SlimCheckpointState {
@@ -116,4 +116,6 @@ export class CheckpointService {
     return stripMessagesField(state) as Record<string, unknown>;
   }
 }
+
+
 

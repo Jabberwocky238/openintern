@@ -1,4 +1,4 @@
-import type { QueuedRun } from '../../types/api.js';
+﻿import type { QueuedRun } from '../../types/api.js';
 import type { Message, ToolCall, ToolResult } from '../../types/agent.js';
 import type { Event } from '../../types/events.js';
 import type { LLMConfig } from '../../types/agent.js';
@@ -31,7 +31,7 @@ import { buildHumanOverrideNote, hasHumanModifiedArgs } from './hitl-note.js';
 type Scope = { orgId: string; userId: string; projectId: string | null };
 type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';
 
-// ─── Config & Result ─────────────────────────────────────────
+// 鈹€鈹€鈹€ Config & Result 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export interface RuntimeExecutorConfig {
   runRepository: IRunRepository;
@@ -79,7 +79,7 @@ export interface RuntimeExecutorResult {
   approvalManager: ToolApprovalManager;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────
+// 鈹€鈹€鈹€ Helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function isCancellationError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -210,7 +210,7 @@ function withInternalToolCallId(
   return { ...args, __tool_call_id: toolCallId };
 }
 
-// ─── Factory ─────────────────────────────────────────────────
+// 鈹€鈹€鈹€ Factory 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export function createRuntimeExecutor(config: RuntimeExecutorConfig): RuntimeExecutorResult {
   let sharedToolRouter: RuntimeToolRouter | null = null;
@@ -470,6 +470,8 @@ export function createRuntimeExecutor(config: RuntimeExecutorConfig): RuntimeExe
 
   return { execute, approvalManager: sharedApprovalManager };
 }
+
+
 
 
 

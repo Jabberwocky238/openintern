@@ -1,4 +1,4 @@
-import type { MemoryScope } from '../../types/memory.js';
+﻿import type { MemoryScope } from '../../types/memory.js';
 import type { MemoryService } from './memory-service.js';
 import type { IRunRepository } from '@openintern/repository';
 import type { ScopeContext } from './scope.js';
@@ -92,6 +92,8 @@ export class KnowledgeDepositor {
     }
   }
 }
+
+
 
 
 

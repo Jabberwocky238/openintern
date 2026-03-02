@@ -36,10 +36,14 @@ import {
   createRuntimeExecutor,
   EventService,
   MemoryService,
-  PlanRepository,
-  RunRepository,
 } from './runtime/index.js';
-import { RoleRepository } from '@openintern/repository';
+import {
+  OPENINTERN_REPOSITORY_DEV_TYPE,
+  PlanRepository,
+  RoleRepository,
+  RunRepository,
+  type IPostgresPool,
+} from '@openintern/repository';
 import { GroupRepository } from '@openintern/repository';
 import { SkillRepository } from '@openintern/repository';
 import { PluginRepository } from '@openintern/repository';
@@ -116,6 +120,21 @@ const DEFAULT_CONFIG: ServerConfig = {
   corsOrigins: '*',
 };
 
+function createUnavailablePostgresPool(reason: string): IPostgresPool {
+  const fail = async (): Promise<never> => {
+    throw new Error(reason);
+  };
+
+  return {
+    query: fail,
+    connect: async () => ({
+      query: fail,
+      release: () => undefined,
+    }),
+    end: async () => undefined,
+  };
+}
+
 /**
  * Create and configure the Express application
  */
@@ -133,10 +152,24 @@ export function createApp(config: Partial<ServerConfig> = {}): {
   const runQueue = new RunQueue({ persistDir: finalConfig.baseDir });
   const sseManager = new SSEManager();
 
-  const pool = getPostgresPool(
-    finalConfig.databaseUrl ? { connectionString: finalConfig.databaseUrl } : {}
-  );
-  const dbReady = runPostgresMigrations(pool);
+  const repositoryMode = OPENINTERN_REPOSITORY_DEV_TYPE;
+  const memoryModeDbWarning =
+    'Repository mode is memory; skipping Postgres bootstrap. DATABASE_URL is optional in memory mode. ' +
+    'DB-backed memory features will throw explicit errors when called.';
+
+  let pool: IPostgresPool;
+  let dbReady: Promise<void>;
+  if (repositoryMode === 'postgres') {
+    const postgresPool = getPostgresPool(
+      finalConfig.databaseUrl ? { connectionString: finalConfig.databaseUrl } : {}
+    );
+    pool = postgresPool;
+    dbReady = runPostgresMigrations(postgresPool);
+  } else {
+    logger.warn(memoryModeDbWarning);
+    pool = createUnavailablePostgresPool(memoryModeDbWarning);
+    dbReady = Promise.resolve();
+  }
   const runRepository = new RunRepository(pool);
   const planRepository = new PlanRepository(pool);
   const roleRepository = new RoleRepository(pool);
@@ -528,5 +561,6 @@ if (isMainModule) {
 
   void server.start();
 }
+
 
 

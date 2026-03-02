@@ -291,7 +291,7 @@ function buildDocxSegments(params: {
     if (detected.kind === 'table') {
       const rowSize = Number(asRecord(detected.payload)['row_size'] ?? 0);
       const columnSize = Number(asRecord(detected.payload)['column_size'] ?? 0);
-      const tableText = text || `表格�?{rowSize || '?'} x ${columnSize || '?'}）`;
+      const tableText = text || `表格 ${rowSize || '?'} x ${columnSize || '?'}`;
       segments.push({
         kind: 'table',
         text: tableText,
@@ -311,7 +311,7 @@ function buildDocxSegments(params: {
       const height = Number(detected.payload['height'] ?? 0);
       segments.push({
         kind: 'image',
-        text: `【图片�?{text || '无图�?}`,
+        text: `【图片】${text || '无图'}`,
         titlePath: basePath,
         blockId: block.block_id,
         metadata: {
@@ -328,7 +328,7 @@ function buildDocxSegments(params: {
       const name = readString(detected.payload['name']);
       segments.push({
         kind: 'file',
-        text: `【附件�?{name ?? '未命名附�?}`,
+        text: `【附件】${name ?? '未命名附件'}`,
         titlePath: basePath,
         blockId: block.block_id,
         metadata: {
@@ -346,7 +346,7 @@ function buildDocxSegments(params: {
         readString(detected.payload['id']);
       segments.push({
         kind: 'whiteboard',
-        text: `【画板�?{text || token || 'whiteboard'}`,
+        text: `【画板】${text || token || 'whiteboard'}`,
         titlePath: basePath,
         blockId: block.block_id,
         metadata: {
@@ -361,7 +361,7 @@ function buildDocxSegments(params: {
       const token = readString(detected.payload['token']) ?? readString(detected.payload['id']);
       segments.push({
         kind: 'embed',
-        text: `【嵌入内容�?{text || url || token || 'embed'}`,
+        text: `【嵌入内容】${text || url || token || 'embed'}`,
         titlePath: basePath,
         blockId: block.block_id,
         metadata: {
@@ -498,7 +498,7 @@ function buildChunksFromSegments(segments: Segment[], context: ChunkBuildContext
       const relatedText = related.map((item) => item.text).join('\n');
       if (normalizeWhitespace(relatedText)) {
         pushChunk({
-          text: `【媒体上下文�?{relatedText}`,
+          text: `【媒体上下文】${relatedText}`,
           kind: 'media_context',
           titlePath: segment.titlePath,
           blockIds: [
@@ -654,7 +654,7 @@ export function normalizeBitableTableToChunks(input: {
     '字段定义:',
   ];
   for (const field of input.fields) {
-    const name = readString(field['field_name']) ?? readString(field['name']) ?? '未命名字�?;
+    const name = readString(field['field_name']) ?? readString(field['name']) ?? '未命名字段';
     const type = readString(field['type']) ?? String(field['type'] ?? 'unknown');
     schemaLines.push(`- ${name} [${type}]`);
   }
@@ -732,4 +732,3 @@ export function normalizeBitableTableToChunks(input: {
     content_hash: hashContent(text),
   };
 }
-

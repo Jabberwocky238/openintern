@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Roles API - Role template CRUD endpoints
  *
  * Endpoints:
@@ -174,6 +174,8 @@ function handleError(res: Response, err: unknown): void {
     error: { code: 'INTERNAL_ERROR', message },
   });
 }
+
+
 
 
 

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
+﻿import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
 import { createPostgresPool, runPostgresMigrations } from '../db/index.js';
 import { generateRunId } from '../../utils/ids.js';
 import type { Message } from '../../types/agent.js';
@@ -192,4 +192,6 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
     expect(ordinals.rows.map((r) => r.ordinal)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 });
+
+
 

@@ -1,4 +1,4 @@
-import type { Message } from '../../types/agent.js';
+ï»¿import type { Message } from '../../types/agent.js';
 import type { Skill } from '../../types/skill.js';
 import type { AgentContext } from './tool-policy.js';
 import type { GroupWithRoles } from '@openintern/repository';
@@ -322,10 +322,10 @@ export class PromptComposer {
     const stepsLeft = budget.maxSteps - budget.currentStep;
 
     if (budget.utilization > 0.85) {
-      lines.push(`ï¿?Context budget: ${(budget.utilization * 100).toFixed(0)}% used. Be concise. Avoid large tool outputs.`);
+      lines.push(`é”Ÿ?Context budget: ${(budget.utilization * 100).toFixed(0)}% used. Be concise. Avoid large tool outputs.`);
     }
     if (stepsLeft <= 3) {
-      lines.push(`ï¿?Steps remaining: ${stepsLeft}/${budget.maxSteps}. Wrap up or produce a final answer soon.`);
+      lines.push(`é”Ÿ?Steps remaining: ${stepsLeft}/${budget.maxSteps}. Wrap up or produce a final answer soon.`);
     }
     if (budget.compactionCount > 0) {
       lines.push(`Context was compacted ${budget.compactionCount} time(s). Some earlier details may be summarized.`);
@@ -334,5 +334,7 @@ export class PromptComposer {
     return lines.length > 0 ? lines.join('\n') : '';
   }
 }
+
+
 
 

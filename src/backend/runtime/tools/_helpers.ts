@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition } from '../../../types/agent.js';
 import type { ScopeContext } from '../scope.js';
@@ -67,6 +67,8 @@ export function resolveWithinWorkDir(workDir: string, requestedPath: string, too
   }
   return resolvedPath;
 }
+
+
 
 
 

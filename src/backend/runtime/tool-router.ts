@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolResult } from '../../types/agent.js';
+﻿import type { ToolDefinition, ToolResult } from '../../types/agent.js';
 import type { Skill } from '../../types/skill.js';
 import type { ScopeContext } from './scope.js';
 import { ToolError } from '../../utils/errors.js';
@@ -16,7 +16,7 @@ import type { EscalationService } from './escalation-service.js';
 import type { IGroupRepository } from '@openintern/repository';
 import type { RuntimeTool, ToolContext } from './tools/_helpers.js';
 
-// ─── Tool modules ────────────────────────────────────────
+// 鈹€鈹€鈹€ Tool modules 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 import { register as registerMemoryTools } from './tools/memory/tools.js';
 import { register as registerFileTools } from './tools/file/tools.js';
 import { register as registerCodingTools } from './tools/coding/tools.js';
@@ -25,11 +25,11 @@ import { register as registerEscalationTools } from './tools/escalation/tools.js
 import { register as registerExportTools } from './tools/export/tools.js';
 import { register as registerRoutingTools } from './tools/routing/tools.js';
 
-// ─── Integration modules ────────────────────────────────
+// 鈹€鈹€鈹€ Integration modules 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 import { register as registerFeishuTools } from './integrations/feishu/tools.js';
 import { register as registerMineruTools } from './integrations/mineru/tools.js';
 
-// ─── MCP helpers ─────────────────────────────────────────
+// 鈹€鈹€鈹€ MCP helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 interface MCPToolDefinition {
   name: string;
@@ -100,7 +100,7 @@ function extractMcpErrorMessage(value: McpToolPayload & { isError: true }): stri
   return 'MCP tool returned isError=true';
 }
 
-// ─── Config ──────────────────────────────────────────────
+// 鈹€鈹€鈹€ Config 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export interface RuntimeToolRouterConfig {
   scope: ScopeContext;
@@ -120,8 +120,8 @@ export interface RuntimeToolRouterConfig {
   skillRegistry?: SkillRegistry;
   escalationService?: EscalationService;
   groupRepository?: IGroupRepository;
-  runRepository?: import('@openintern/repository').IRunRepository;
-  roleRepository?: import('@openintern/repository').IRoleRepository;
+  runRepository?: import('./').IRunRepository;
+  roleRepository?: import('./').IRoleRepository;
   runQueue?: { enqueue(runId: string): Promise<void> | void };
   currentRunId?: string;
   currentSessionKey?: string;
@@ -133,7 +133,7 @@ export type ToolArgsValidationResult =
   | { ok: true }
   | { ok: false; message: string; errors: ErrorObject[] };
 
-// ─── Router class ────────────────────────────────────────
+// 鈹€鈹€鈹€ Router class 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export class RuntimeToolRouter {
   private readonly tools = new Map<string, RuntimeTool>();
@@ -183,7 +183,7 @@ export class RuntimeToolRouter {
     this.registerBuiltinTools();
   }
 
-  // ─── State setters ───────────────────────────────────
+  // 鈹€鈹€鈹€ State setters 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   setScope(scope: ScopeContext): void {
     this.ctx.scope = scope;
@@ -202,7 +202,7 @@ export class RuntimeToolRouter {
     this.ctx.skillRegistry = skillRegistry;
   }
 
-  // ─── Lifecycle ───────────────────────────────────────
+  // 鈹€鈹€鈹€ Lifecycle 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   async start(): Promise<void> {
     if (!this.mcpClient) return;
@@ -214,7 +214,7 @@ export class RuntimeToolRouter {
     if (this.mcpClient) await this.mcpClient.stop();
   }
 
-  // ─── Query ───────────────────────────────────────────
+  // 鈹€鈹€鈹€ Query 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   listTools(): ToolDefinition[] {
     return [...this.tools.values()].map(({ name, description, parameters, metadata }) => ({
@@ -238,7 +238,7 @@ export class RuntimeToolRouter {
     return this.ctx.skillRegistry?.listSkills() ?? [];
   }
 
-  // ─── Dispatch ────────────────────────────────────────
+  // 鈹€鈹€鈹€ Dispatch 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   async callTool(
     name: string,
@@ -340,7 +340,7 @@ export class RuntimeToolRouter {
     };
   }
 
-  // ─── Policy ──────────────────────────────────────────
+  // 鈹€鈹€鈹€ Policy 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   private checkPolicy(
     toolName: string,
@@ -387,7 +387,7 @@ export class RuntimeToolRouter {
       .join('; ');
   }
 
-  // ─── Builtin registration ───────────────────────────
+  // 鈹€鈹€鈹€ Builtin registration 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   private registerBuiltinTools(): void {
     const registrars = [
@@ -409,7 +409,7 @@ export class RuntimeToolRouter {
     }
   }
 
-  // ─── MCP ─────────────────────────────────────────────
+  // 鈹€鈹€鈹€ MCP 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
   private timeout(toolName: string): Promise<never> {
     return new Promise((_, reject) => {
@@ -480,6 +480,8 @@ export class RuntimeToolRouter {
     return MCP_RETRYABLE_ERROR_MARKERS.some((marker) => message.includes(marker));
   }
 }
+
+
 
 
 
