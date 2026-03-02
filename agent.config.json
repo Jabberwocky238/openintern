@@ -1,9 +1,9 @@
 {
   "llm": {
-    "provider": "openai",
-    "model": "gemini-3-pro-preview",
-    "baseUrl": "https://apic1.ohmycdn.com/v1",
-    "apiKey": "sk-BkNJCPZG974e10cE793bT3BLBkFJF8B4d984b5Db4e4f8Eac",
+    "provider": "anthropic",
+    "model": "MiniMax-M2.5",
+    "baseUrl": "https://api.minimaxi.com/anthropic",
+    "apiKey": "sk-cp-4frjFjHfPxD2zJcAsfCHMTwQfLRGacgpMXKlNMCq4-IYo82OpfyMdTCGcv0Mbl3_dTJfry5yDdSUUv6IwFXrAn0q5AC5OfacQwSGWgwpSnw8-4dOT7pi3go",
     "temperature": 0.7,
     "maxTokens": 2000
   },
