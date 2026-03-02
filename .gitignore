@@ -18,6 +18,7 @@ build/
 # Environment
 .env
 .env.local
+.env.dev
 
 # OS
 .DS_Store
