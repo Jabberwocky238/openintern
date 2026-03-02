@@ -319,11 +319,12 @@ export class SingleAgentRunner implements AgentRunner {
 
         // ── Tool calls via ToolCallScheduler ──
         if (response.toolCalls && response.toolCalls.length > 0) {
-          const toolHint = this.formatToolHint(response.toolCalls);
+          const normalizedToolCalls = this.normalizeToolCallsForStep(response.toolCalls, step);
+          const toolHint = this.formatToolHint(normalizedToolCalls);
           yield this.createEvent(ctx, stepId, rootSpan, 'tool.hint', {
             hint: toolHint,
-            tools: response.toolCalls.map((tc) => tc.name),
-            tool_count: response.toolCalls.length,
+            tools: normalizedToolCalls.map((tc) => tc.name),
+            tool_count: normalizedToolCalls.length,
           });
 
           if (step >= this.maxSteps) {
@@ -390,7 +391,7 @@ export class SingleAgentRunner implements AgentRunner {
             };
           }
 
-          const lookupOnlyCalls = response.toolCalls.every((tc) => LOOKUP_TOOL_NAMES.has(tc.name));
+          const lookupOnlyCalls = normalizedToolCalls.every((tc) => LOOKUP_TOOL_NAMES.has(tc.name));
           lookupOnlyToolStreak = lookupOnlyCalls ? lookupOnlyToolStreak + 1 : 0;
           const stepsRemaining = this.maxSteps - step;
 
@@ -451,7 +452,7 @@ export class SingleAgentRunner implements AgentRunner {
           }
 
           // Doom-loop detection
-          const doomDetected = this.detectRepeatedToolPattern(response.toolCalls);
+          const doomDetected = this.detectRepeatedToolPattern(normalizedToolCalls);
           if (doomDetected) {
             yield this.createEvent(ctx, stepId, rootSpan, 'run.warning', {
               code: 'DOOM_LOOP_DETECTED',
@@ -460,9 +461,9 @@ export class SingleAgentRunner implements AgentRunner {
             messages.push({
               role: 'assistant',
               content: response.content,
-              toolCalls: response.toolCalls,
+              toolCalls: normalizedToolCalls,
             });
-            const firstToolCall = response.toolCalls[0];
+            const firstToolCall = normalizedToolCalls[0];
             if (firstToolCall) {
               messages.push({
                 role: 'tool',
@@ -476,12 +477,12 @@ export class SingleAgentRunner implements AgentRunner {
           messages.push({
             role: 'assistant',
             content: response.content,
-            toolCalls: response.toolCalls,
+            toolCalls: normalizedToolCalls,
           });
 
           // Use ToolCallScheduler for batch execution
           const batchResult = await this.toolScheduler.executeBatch(
-            response.toolCalls,
+            normalizedToolCalls,
             this.config.toolRouter,
             {
               runId: ctx.runId,
@@ -682,6 +683,32 @@ export class SingleAgentRunner implements AgentRunner {
     const tail = this.recentToolSignatures.slice(-DOOM_LOOP_THRESHOLD);
     if (tail.length < DOOM_LOOP_THRESHOLD) return false;
     return tail.every((s) => s === signature);
+  }
+
+  /**
+   * Canonicalize provider-returned tool call IDs into deterministic runtime IDs.
+   * We do not rely on provider IDs being globally unique across turns.
+   */
+  private normalizeToolCallsForStep(toolCalls: ToolCall[], step: number): ToolCall[] {
+    const seen = new Set<string>();
+    return toolCalls.map((toolCall, index) => {
+      const cleaned = toolCall.id
+        .replace(/[^A-Za-z0-9_-]/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 64);
+      const baseId = `tc_${step}_${index}${cleaned.length > 0 ? `_${cleaned}` : ''}`;
+      let nextId = baseId;
+      let suffix = 0;
+      while (seen.has(nextId)) {
+        suffix += 1;
+        nextId = `${baseId}_${suffix}`;
+      }
+      seen.add(nextId);
+      return {
+        ...toolCall,
+        id: nextId,
+      };
+    });
   }
 
   private shouldForceFinalizeForLookupLoop(

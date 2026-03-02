@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from '../../types/events.js';
 import { EventSchema } from '../../types/events.js';
-import type { LLMResponse } from '../../types/agent.js';
+import type { LLMResponse, Message } from '../../types/agent.js';
 import { createLLMClient } from '../agent/llm-client.js';
 import { SingleAgentRunner, type RunnerContext } from './agent-runner.js';
 import { RunSuspendedError } from './tool-scheduler.js';
@@ -318,6 +318,98 @@ describe('SingleAgentRunner', () => {
     expect(checkpointService.save).toHaveBeenCalledTimes(2);
     expect(toolRouter.callTool).toHaveBeenCalledTimes(1);
     assertEventMetadata(events);
+  });
+
+  it('canonicalizes provider tool call ids so repeated ids across turns stay unique', async () => {
+    const memoryService = {
+      memory_search: vi.fn(async () => []),
+      memory_search_pa: vi.fn(async () => []),
+      memory_search_tiered: vi.fn(async () => []),
+    };
+    const checkpointService = {
+      save: vi.fn(async () => undefined),
+    };
+    const toolRouter = {
+      listTools: vi.fn(() => [
+        {
+          name: 'read_file',
+          description: 'read file',
+          parameters: {
+            type: 'object',
+            properties: { path: { type: 'string' } },
+            required: ['path'],
+          },
+        },
+      ]),
+      listSkills: vi.fn(() => []),
+      callTool: vi.fn(async () => ({
+        success: true,
+        result: { content: 'ok' },
+        duration: 1,
+      })),
+    };
+    const chat = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content: 'first tool',
+        usage: usage(),
+        toolCalls: [
+          {
+            id: 'call_function_dup_2',
+            name: 'read_file',
+            parameters: { path: 'README.md' },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        content: 'second tool',
+        usage: usage(),
+        toolCalls: [
+          {
+            id: 'call_function_dup_2',
+            name: 'read_file',
+            parameters: { path: 'package.json' },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        content: 'done',
+        usage: usage(),
+      });
+    mockedCreateLLMClient.mockReturnValue({ chat });
+
+    const runner = new SingleAgentRunner({
+      maxSteps: 4,
+      modelConfig: { provider: 'mock', model: 'mock-model' },
+      checkpointService: checkpointService as never,
+      memoryService: memoryService as never,
+      toolRouter: toolRouter as never,
+    });
+
+    const { result } = await collectRun(
+      runner,
+      'read twice',
+      runnerContext,
+      []
+    );
+
+    expect(result.status).toBe('completed');
+    expect(toolRouter.callTool).toHaveBeenCalledTimes(2);
+
+    const thirdCallMessages = chat.mock.calls[2]?.[0] as Message[];
+    const assistantToolMessages = thirdCallMessages.filter(
+      (message) => message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0
+    );
+    const toolResultMessages = thirdCallMessages.filter((message) => message.role === 'tool');
+
+    expect(assistantToolMessages).toHaveLength(2);
+    expect(toolResultMessages).toHaveLength(2);
+
+    const firstId = assistantToolMessages[0]!.toolCalls![0]!.id;
+    const secondId = assistantToolMessages[1]!.toolCalls![0]!.id;
+    expect(firstId).not.toBe(secondId);
+    expect(toolResultMessages[0]!.toolCallId).toBe(firstId);
+    expect(toolResultMessages[1]!.toolCallId).toBe(secondId);
   });
 
   it('forces final synthesis on the last step instead of executing another tool batch', async () => {
