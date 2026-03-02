@@ -9,6 +9,7 @@ import type {
   RunFailedPayload,
   RunResumedPayload,
   RunSuspendedPayload,
+  ToolHintPayload,
   ToolCalledPayload,
   ToolResultPayload,
   ToolBlockedPayload,
@@ -55,6 +56,11 @@ export interface RunSuspendedEvent extends BaseEvent {
 export interface ToolCalledEvent extends BaseEvent {
   type: 'tool.called';
   payload: ToolCalledPayload;
+}
+
+export interface ToolHintEvent extends BaseEvent {
+  type: 'tool.hint';
+  payload: ToolHintPayload;
 }
 
 export interface ToolResultEvent extends BaseEvent {
@@ -134,6 +140,7 @@ export type Event =
   | RunFailedEvent
   | RunResumedEvent
   | RunSuspendedEvent
+  | ToolHintEvent
   | ToolCalledEvent
   | ToolResultEvent
   | ToolBlockedEvent

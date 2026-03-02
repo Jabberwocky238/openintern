@@ -79,6 +79,15 @@ export const ToolCalledPayloadSchema = z.object({
 });
 
 /**
+ * Tool hint event payload
+ */
+export const ToolHintPayloadSchema = z.object({
+  hint: z.string(),
+  tools: z.array(z.string()).default([]),
+  tool_count: z.number().positive(),
+});
+
+/**
  * Tool result event payload
  */
 export const ToolResultPayloadSchema = z.object({
@@ -304,6 +313,7 @@ export const EventTypeSchema = z.enum([
   'step.retried',
   'llm.called',
   'llm.token',
+  'tool.hint',
   'tool.called',
   'tool.result',
   'tool.blocked',
@@ -381,6 +391,16 @@ export const ToolCalledEventSchema = BaseEventSchema.extend({
 });
 
 export type ToolCalledEvent = z.infer<typeof ToolCalledEventSchema>;
+
+/**
+ * Tool hint event
+ */
+export const ToolHintEventSchema = BaseEventSchema.extend({
+  type: z.literal('tool.hint'),
+  payload: ToolHintPayloadSchema,
+});
+
+export type ToolHintEvent = z.infer<typeof ToolHintEventSchema>;
 
 /**
  * Tool result event
@@ -567,6 +587,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   RunSuspendedEventSchema,
   RunCompactedEventSchema,
   RunWarningEventSchema,
+  ToolHintEventSchema,
   ToolCalledEventSchema,
   ToolResultEventSchema,
   ToolBlockedEventSchema,

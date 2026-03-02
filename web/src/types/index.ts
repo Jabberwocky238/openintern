@@ -37,6 +37,7 @@ export type EventType =
   | 'step.retried'
   | 'llm.called'
   | 'llm.token'
+  | 'tool.hint'
   | 'tool.called'
   | 'tool.result'
   | 'tool.blocked'
@@ -103,6 +104,12 @@ export interface ToolCalledPayload {
   human_intervened?: boolean;
   modified_args_applied?: boolean;
   effective_args?: Record<string, unknown>;
+}
+
+export interface ToolHintPayload {
+  hint: string;
+  tools: string[];
+  tool_count: number;
 }
 
 export interface ToolResultPayload {

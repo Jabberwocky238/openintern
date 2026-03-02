@@ -128,6 +128,7 @@ const EVENT_COLORS: Record<string, (s: string) => string> = {
   'run.failed': chalk.red,
   'step.started': chalk.blue,
   'step.completed': chalk.blue,
+  'tool.hint': chalk.yellow,
   'tool.called': chalk.yellow,
   'tool.result': chalk.yellow,
   'llm.called': chalk.magenta,
@@ -150,6 +151,8 @@ export function formatEvent(event: {
   if (event.payload) {
     if (event.type === 'tool.called' && 'toolName' in event.payload) {
       details = `: ${String(event.payload['toolName'])}`;
+    } else if (event.type === 'tool.hint' && 'hint' in event.payload) {
+      details = `: ${String(event.payload['hint'])}`;
     } else if (event.type === 'tool.result' && 'toolName' in event.payload) {
       const isError = event.payload['isError'];
       const toolName = String(event.payload['toolName']);
