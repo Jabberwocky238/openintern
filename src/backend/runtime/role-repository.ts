@@ -2,6 +2,7 @@ import type { Pool } from 'pg';
 import type { Role, CreateRole } from '../../types/orchestrator.js';
 import { generateRoleId } from '../../utils/ids.js';
 import { NotFoundError } from '../../utils/errors.js';
+import type { IRoleRepository } from '../repository/interfaces/role-repository.js';
 
 interface RoleRow {
   id: string;
@@ -35,7 +36,7 @@ function mapRoleRow(row: RoleRow): Role {
   };
 }
 
-export class RoleRepository {
+export class RoleRepository implements IRoleRepository {
   constructor(private readonly pool: Pool) {}
 
   async create(input: CreateRole): Promise<Role> {

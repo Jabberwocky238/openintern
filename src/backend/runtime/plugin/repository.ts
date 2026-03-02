@@ -1,4 +1,5 @@
 import type { Pool } from 'pg';
+import type { IPluginRepository } from '../../repository/interfaces/plugin-repository.js';
 
 // ─── Row types ───────────────────────────────────────────
 
@@ -41,7 +42,7 @@ export interface PluginKvRow {
 
 // ─── Repository ──────────────────────────────────────────
 
-export class PluginRepository {
+export class PluginRepository implements IPluginRepository {
   constructor(private readonly pool: Pool) {}
 
   // ── plugins CRUD ─────────────────────────────────────

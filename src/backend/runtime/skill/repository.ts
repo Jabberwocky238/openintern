@@ -2,6 +2,7 @@ import type { Pool } from 'pg';
 import type { Skill, CreateSkill } from '../../../types/skill.js';
 import { generateSkillId } from '../../../utils/ids.js';
 import { NotFoundError } from '../../../utils/errors.js';
+import type { ISkillRepository } from '../../repository/interfaces/skill-repository.js';
 
 interface SkillRow {
   id: string;
@@ -35,7 +36,7 @@ function mapSkillRow(row: SkillRow): Skill {
   };
 }
 
-export class SkillRepository {
+export class SkillRepository implements ISkillRepository {
   constructor(private readonly pool: Pool) {}
 
   async create(input: CreateSkill): Promise<Skill> {

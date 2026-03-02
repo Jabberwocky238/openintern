@@ -13,6 +13,7 @@ import type {
   RunStatus,
 } from './models.js';
 import { appendScopePredicate, type ScopeContext } from './scope.js';
+import type { IRunRepository } from '../repository/interfaces/run-repository.js';
 
 interface RunRow {
   id: string;
@@ -153,7 +154,7 @@ function resolveMessageType(
   return explicit ?? MESSAGE_TYPE_BY_EVENT_TYPE[eventType] ?? null;
 }
 
-export class RunRepository {
+export class RunRepository implements IRunRepository {
   constructor(private readonly pool: Pool) {}
 
   async createRun(input: RunCreateInput): Promise<RunRecord> {

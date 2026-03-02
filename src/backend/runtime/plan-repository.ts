@@ -1,5 +1,6 @@
 import type { Pool } from 'pg';
 import type { PlanRecord, PlanTaskRecord } from './models.js';
+import type { IPlanRepository } from '../repository/interfaces/plan-repository.js';
 
 interface PlanRow {
   id: string | number;
@@ -98,7 +99,7 @@ function mapTaskRow(row: TaskRow): PlanTaskRecord {
   };
 }
 
-export class PlanRepository {
+export class PlanRepository implements IPlanRepository {
   constructor(private readonly pool: Pool) {}
 
   async getPlanByRunId(runId: string): Promise<PlanRecord | null> {

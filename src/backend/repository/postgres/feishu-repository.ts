@@ -9,6 +9,7 @@ import type {
 import { generatePluginId, generatePluginJobId } from '../../../../utils/ids.js';
 import { NotFoundError } from '../../../../utils/errors.js';
 import type { PluginRepository, PluginRow, PluginJobRow, PluginKvRow } from '../../plugin/repository.js';
+import type { IFeishuRepository } from '../../../repository/interfaces/feishu-repository.js';
 
 const PROVIDER = 'feishu';
 
@@ -91,7 +92,7 @@ const DEFAULT_STATS: FeishuSyncStats = {
   chunk_count: 0,
 };
 
-export class FeishuRepository {
+export class FeishuRepository implements IFeishuRepository {
   constructor(private readonly repo: PluginRepository) {}
 
   async createConnector(input: {
