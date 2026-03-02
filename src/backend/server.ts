@@ -20,6 +20,7 @@ import { createGroupsRouter } from './api/groups.js';
 import { createBlackboardRouter } from './api/blackboard.js';
 import { createSkillsRouter } from './api/skills.js';
 import { createFeishuConnectorsRouter } from './api/feishu-connectors.js';
+import { createFeishuImRouter } from './api/feishu-im.js';
 import { createUploadsRouter } from './api/uploads.js';
 import { createMineruRouter } from './api/mineru.js';
 import { RunQueue } from './queue/run-queue.js';
@@ -37,6 +38,7 @@ import { SkillRepository } from './runtime/skill/repository.js';
 import { PluginRepository } from './runtime/plugin/repository.js';
 import { FeishuRepository } from './runtime/integrations/feishu/repository.js';
 import { FeishuClient } from './runtime/integrations/feishu/client.js';
+import { FeishuImService } from './channels/feishu/im-service.js';
 import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js';
 import { MineruClient } from './runtime/integrations/mineru/client.js';
 import { MineruIngestService } from './runtime/integrations/mineru/ingest-service.js';
@@ -72,6 +74,17 @@ export interface ServerConfig {
     timeoutMs?: number;
     maxRetries?: number;
     pollIntervalMs?: number;
+    im?: {
+      enabled?: boolean;
+      verifyToken?: string;
+      defaultOrgId?: string;
+      defaultUserId?: string;
+      defaultProjectId?: string;
+      agentId?: string;
+      sessionPrefix?: string;
+      waitTimeoutMs?: number;
+      pollIntervalMs?: number;
+    };
   };
   mineru?: {
     enabled?: boolean;
@@ -152,6 +165,42 @@ export function createApp(config: Partial<ServerConfig> = {}): {
           ...(finalConfig.feishu.maxRetries ? { maxRetries: finalConfig.feishu.maxRetries } : {}),
         })
       : null;
+  const feishuImEnabledByConfig = Boolean(finalConfig.feishu?.im?.enabled);
+  if (feishuImEnabledByConfig && !feishuClient) {
+    logger.warn('Feishu IM is enabled but appId/appSecret are not configured; IM webhook will be inactive');
+  }
+  const feishuImService = new FeishuImService(
+    runRepository,
+    runQueue,
+    feishuClient,
+    {
+      enabled: feishuImEnabledByConfig && feishuClient !== null,
+      ...(finalConfig.feishu?.im?.verifyToken
+        ? { verifyToken: finalConfig.feishu.im.verifyToken }
+        : {}),
+      ...(finalConfig.feishu?.im?.defaultOrgId
+        ? { defaultOrgId: finalConfig.feishu.im.defaultOrgId }
+        : {}),
+      ...(finalConfig.feishu?.im?.defaultUserId
+        ? { defaultUserId: finalConfig.feishu.im.defaultUserId }
+        : {}),
+      ...(finalConfig.feishu?.im?.defaultProjectId
+        ? { defaultProjectId: finalConfig.feishu.im.defaultProjectId }
+        : {}),
+      ...(finalConfig.feishu?.im?.agentId
+        ? { defaultAgentId: finalConfig.feishu.im.agentId }
+        : {}),
+      ...(finalConfig.feishu?.im?.sessionPrefix
+        ? { sessionPrefix: finalConfig.feishu.im.sessionPrefix }
+        : {}),
+      ...(finalConfig.feishu?.im?.waitTimeoutMs
+        ? { waitTimeoutMs: finalConfig.feishu.im.waitTimeoutMs }
+        : {}),
+      ...(finalConfig.feishu?.im?.pollIntervalMs
+        ? { pollIntervalMs: finalConfig.feishu.im.pollIntervalMs }
+        : {}),
+    }
+  );
   const feishuSyncService = new FeishuSyncService(
     feishuRepository,
     memoryService,
@@ -289,6 +338,10 @@ export function createApp(config: Partial<ServerConfig> = {}): {
     syncService: feishuSyncService,
   });
   app.use('/api', feishuRouter);
+  const feishuImRouter = createFeishuImRouter({
+    webhookHandler: feishuImService,
+  });
+  app.use('/api', feishuImRouter);
 
   // Uploads API routes
   const uploadService = new UploadService(finalConfig.baseDir);

@@ -45,6 +45,8 @@ export interface FeishuBitableTableInfo {
   revision: number | null;
 }
 
+export type FeishuMessageReceiveIdType = 'open_id' | 'chat_id' | 'user_id' | 'email' | 'union_id';
+
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>;
@@ -340,6 +342,21 @@ export class FeishuClient {
     }
 
     return result;
+  }
+
+  async sendTextMessage(args: {
+    receiveIdType: FeishuMessageReceiveIdType;
+    receiveId: string;
+    text: string;
+  }): Promise<void> {
+    await this.request('POST', '/open-apis/im/v1/messages', {
+      query: { receive_id_type: args.receiveIdType },
+      body: {
+        receive_id: args.receiveId,
+        msg_type: 'text',
+        content: JSON.stringify({ text: args.text }),
+      },
+    });
   }
 
   private async request(

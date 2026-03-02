@@ -27,6 +27,9 @@ const ENV_KEYS = [
   'PORT', 'DATA_DIR',
   'FEISHU_ENABLED', 'FEISHU_APP_ID', 'FEISHU_APP_SECRET', 'FEISHU_BASE_URL',
   'FEISHU_TIMEOUT_MS', 'FEISHU_MAX_RETRIES', 'FEISHU_POLL_INTERVAL_MS',
+  'FEISHU_IM_ENABLED', 'FEISHU_IM_VERIFY_TOKEN', 'FEISHU_IM_DEFAULT_ORG_ID',
+  'FEISHU_IM_DEFAULT_USER_ID', 'FEISHU_IM_DEFAULT_PROJECT_ID', 'FEISHU_IM_AGENT_ID',
+  'FEISHU_IM_SESSION_PREFIX', 'FEISHU_IM_WAIT_TIMEOUT_MS', 'FEISHU_IM_POLL_INTERVAL_MS',
   'MINERU_ENABLED', 'MINERU_MODE', 'MINERU_API_KEY', 'MINERU_BASE_URL', 'MINERU_UID_TOKEN',
   'MINERU_TIMEOUT_MS', 'MINERU_MAX_RETRIES', 'MINERU_POLL_INTERVAL_MS',
   'MINERU_MAX_POLL_ATTEMPTS', 'MINERU_DEFAULT_MODEL_VERSION',
@@ -107,6 +110,14 @@ describe('loadConfig', () => {
     process.env['FEISHU_APP_ID'] = 'cli_app_id';
     process.env['FEISHU_APP_SECRET'] = 'cli_app_secret';
     process.env['FEISHU_POLL_INTERVAL_MS'] = '180000';
+    process.env['FEISHU_IM_ENABLED'] = 'true';
+    process.env['FEISHU_IM_VERIFY_TOKEN'] = 'token_123';
+    process.env['FEISHU_IM_DEFAULT_ORG_ID'] = 'org_feishu';
+    process.env['FEISHU_IM_DEFAULT_PROJECT_ID'] = 'proj_feishu';
+    process.env['FEISHU_IM_AGENT_ID'] = 'main';
+    process.env['FEISHU_IM_SESSION_PREFIX'] = 's_feishu';
+    process.env['FEISHU_IM_WAIT_TIMEOUT_MS'] = '80000';
+    process.env['FEISHU_IM_POLL_INTERVAL_MS'] = '700';
 
     const config = await loadConfig('/tmp/test');
 
@@ -114,6 +125,14 @@ describe('loadConfig', () => {
     expect(config.feishu?.appId).toBe('cli_app_id');
     expect(config.feishu?.appSecret).toBe('cli_app_secret');
     expect(config.feishu?.pollIntervalMs).toBe(180000);
+    expect(config.feishu?.im?.enabled).toBe(true);
+    expect(config.feishu?.im?.verifyToken).toBe('token_123');
+    expect(config.feishu?.im?.defaultOrgId).toBe('org_feishu');
+    expect(config.feishu?.im?.defaultProjectId).toBe('proj_feishu');
+    expect(config.feishu?.im?.agentId).toBe('main');
+    expect(config.feishu?.im?.sessionPrefix).toBe('s_feishu');
+    expect(config.feishu?.im?.waitTimeoutMs).toBe(80000);
+    expect(config.feishu?.im?.pollIntervalMs).toBe(700);
   });
 
   it('should apply MinerU env var overrides', async () => {

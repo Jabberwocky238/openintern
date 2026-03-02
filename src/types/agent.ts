@@ -272,6 +272,17 @@ export interface AgentConfig {
     timeoutMs?: number;
     maxRetries?: number;
     pollIntervalMs?: number;
+    im?: {
+      enabled?: boolean;
+      verifyToken?: string;
+      defaultOrgId?: string;
+      defaultUserId?: string;
+      defaultProjectId?: string;
+      agentId?: string;
+      sessionPrefix?: string;
+      waitTimeoutMs?: number;
+      pollIntervalMs?: number;
+    };
   };
   mineru?: {
     enabled?: boolean;

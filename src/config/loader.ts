@@ -181,6 +181,15 @@ function applyEnvOverrides(config: AgentConfig): AgentConfig {
   const envFeishuTimeoutMs = process.env['FEISHU_TIMEOUT_MS'];
   const envFeishuMaxRetries = process.env['FEISHU_MAX_RETRIES'];
   const envFeishuPollIntervalMs = process.env['FEISHU_POLL_INTERVAL_MS'];
+  const envFeishuImEnabled = process.env['FEISHU_IM_ENABLED'];
+  const envFeishuImVerifyToken = process.env['FEISHU_IM_VERIFY_TOKEN'];
+  const envFeishuImDefaultOrgId = process.env['FEISHU_IM_DEFAULT_ORG_ID'];
+  const envFeishuImDefaultUserId = process.env['FEISHU_IM_DEFAULT_USER_ID'];
+  const envFeishuImDefaultProjectId = process.env['FEISHU_IM_DEFAULT_PROJECT_ID'];
+  const envFeishuImAgentId = process.env['FEISHU_IM_AGENT_ID'];
+  const envFeishuImSessionPrefix = process.env['FEISHU_IM_SESSION_PREFIX'];
+  const envFeishuImWaitTimeoutMs = process.env['FEISHU_IM_WAIT_TIMEOUT_MS'];
+  const envFeishuImPollIntervalMs = process.env['FEISHU_IM_POLL_INTERVAL_MS'];
   if (
     envFeishuEnabled !== undefined ||
     envFeishuAppId ||
@@ -188,7 +197,16 @@ function applyEnvOverrides(config: AgentConfig): AgentConfig {
     envFeishuBaseUrl ||
     envFeishuTimeoutMs ||
     envFeishuMaxRetries ||
-    envFeishuPollIntervalMs
+    envFeishuPollIntervalMs ||
+    envFeishuImEnabled !== undefined ||
+    envFeishuImVerifyToken ||
+    envFeishuImDefaultOrgId ||
+    envFeishuImDefaultUserId ||
+    envFeishuImDefaultProjectId ||
+    envFeishuImAgentId ||
+    envFeishuImSessionPrefix ||
+    envFeishuImWaitTimeoutMs ||
+    envFeishuImPollIntervalMs
   ) {
     if (!result.feishu) result.feishu = {};
     if (envFeishuEnabled !== undefined) {
@@ -201,6 +219,48 @@ function applyEnvOverrides(config: AgentConfig): AgentConfig {
     if (envFeishuMaxRetries) result.feishu.maxRetries = parseInt(envFeishuMaxRetries, 10);
     if (envFeishuPollIntervalMs) {
       result.feishu.pollIntervalMs = parseInt(envFeishuPollIntervalMs, 10);
+    }
+    if (
+      envFeishuImEnabled !== undefined ||
+      envFeishuImVerifyToken ||
+      envFeishuImDefaultOrgId ||
+      envFeishuImDefaultUserId ||
+      envFeishuImDefaultProjectId ||
+      envFeishuImAgentId ||
+      envFeishuImSessionPrefix ||
+      envFeishuImWaitTimeoutMs ||
+      envFeishuImPollIntervalMs
+    ) {
+      if (!result.feishu.im) {
+        result.feishu.im = {};
+      }
+      if (envFeishuImEnabled !== undefined) {
+        result.feishu.im.enabled = envFeishuImEnabled === 'true';
+      }
+      if (envFeishuImVerifyToken) {
+        result.feishu.im.verifyToken = envFeishuImVerifyToken;
+      }
+      if (envFeishuImDefaultOrgId) {
+        result.feishu.im.defaultOrgId = envFeishuImDefaultOrgId;
+      }
+      if (envFeishuImDefaultUserId) {
+        result.feishu.im.defaultUserId = envFeishuImDefaultUserId;
+      }
+      if (envFeishuImDefaultProjectId) {
+        result.feishu.im.defaultProjectId = envFeishuImDefaultProjectId;
+      }
+      if (envFeishuImAgentId) {
+        result.feishu.im.agentId = envFeishuImAgentId;
+      }
+      if (envFeishuImSessionPrefix) {
+        result.feishu.im.sessionPrefix = envFeishuImSessionPrefix;
+      }
+      if (envFeishuImWaitTimeoutMs) {
+        result.feishu.im.waitTimeoutMs = parseInt(envFeishuImWaitTimeoutMs, 10);
+      }
+      if (envFeishuImPollIntervalMs) {
+        result.feishu.im.pollIntervalMs = parseInt(envFeishuImPollIntervalMs, 10);
+      }
     }
   }
 

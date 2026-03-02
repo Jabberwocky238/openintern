@@ -43,7 +43,17 @@
     "baseUrl": "https://open.feishu.cn",
     "timeoutMs": 20000,
     "maxRetries": 3,
-    "pollIntervalMs": 120000
+    "pollIntervalMs": 120000,
+    "im": {
+      "enabled": false,
+      "verifyToken": "your-feishu-event-token",
+      "defaultOrgId": "org_feishu",
+      "defaultProjectId": "proj_feishu",
+      "agentId": "main",
+      "sessionPrefix": "s_feishu",
+      "waitTimeoutMs": 90000,
+      "pollIntervalMs": 600
+    }
   },
   "mineru": {
     "enabled": false,
