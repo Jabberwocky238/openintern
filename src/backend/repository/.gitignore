@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Runtime data
+data/
+
+# IDE
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# Build output
+dist/
+build/
+*.log
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.spec-workflow/

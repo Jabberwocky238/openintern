@@ -1,6 +1,6 @@
 import type { QueuedRun } from '../../../types/api.js';
 import type { RunStatus } from '../../runtime/models.js';
-import type { RunRepository } from '../../repository/postgres/run-repository.js';
+import type { RunRepository } from '@openintern/repository/postgres';
 import type { RunQueue } from '../../queue/run-queue.js';
 import type { FeishuClient, FeishuMessageReceiveIdType } from '../../runtime/integrations/feishu/client.js';
 import { generateRunId } from '../../../utils/ids.js';

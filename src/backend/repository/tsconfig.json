@@ -14,14 +14,13 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@openintern/repository": ["src/backend/repository/index.ts"],
-      "@openintern/repository/postgres": ["src/backend/repository/postgres/index.ts"]
-    }
+    "exactOptionalPropertyTypes": true
   },
-  "include": ["src/**/*"],
+  "include": [
+    "./index.ts",
+    "./interfaces/**/*.ts",
+    "./memory/**/*.ts",
+    "./postgres/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

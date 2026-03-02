@@ -33,3 +33,4 @@ export type {
 } from './interfaces/feishu-repository.js';
 
 export * as productionRepository from './postgres/index.js';
+export * as memoryRepository from './memory/index.js';

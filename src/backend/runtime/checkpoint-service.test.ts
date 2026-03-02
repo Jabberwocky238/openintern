@@ -4,7 +4,7 @@ import { createPostgresPool, runPostgresMigrations } from '../db/index.js';
 import { generateRunId } from '../../utils/ids.js';
 import type { Message } from '../../types/agent.js';
 import { CheckpointService } from './checkpoint-service.js';
-import { RunRepository } from '../repository/postgres/run-repository.js';
+import { RunRepository } from '@openintern/repository/postgres';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 

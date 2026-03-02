@@ -12,10 +12,10 @@ import { z } from 'zod';
 import { MemoryTypeSchema } from '../../types/memory.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { GroupRepository } from '../repository/postgres/group-repository.js';
+import { GroupRepository } from '@openintern/repository/postgres';
 import { MemoryService } from '../runtime/memory-service.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { RoleRepository } from '../repository/postgres/role-repository.js';
+import { RoleRepository } from '@openintern/repository/postgres';
 
 export interface BlackboardRouterConfig {
   groupRepository: GroupRepository;

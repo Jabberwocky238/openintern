@@ -1,6 +1,6 @@
 import type { MemoryScope } from '../../types/memory.js';
 import type { MemoryService } from './memory-service.js';
-import type { RunRepository } from '../repository/postgres/run-repository.js';
+import type { RunRepository } from '@openintern/repository/postgres';
 import type { ScopeContext } from './scope.js';
 import { logger } from '../../utils/logger.js';
 

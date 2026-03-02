@@ -1,4 +1,4 @@
-import type { RunRepository } from '../repository/postgres/run-repository.js';
+import type { RunRepository } from '@openintern/repository/postgres';
 import type { CheckpointService } from './checkpoint-service.js';
 import type { RunDependency } from './models.js';
 import { logger } from '../../utils/logger.js';
@@ -40,7 +40,7 @@ export class SwarmCoordinator {
 
     if (pendingCount > 0) return; // siblings still running
 
-    // All children done â€?collect results and wake parent
+    // All children done ï¿½?collect results and wake parent
     const deps = await this.runRepo.listDependenciesByParent(dep.parentRunId);
     await this.injectChildResults(dep.parentRunId, deps);
     await this.runRepo.setRunResumedFromSuspension(dep.parentRunId);

@@ -32,7 +32,7 @@ import { SSEManager } from './sse.js';
 import { EventService } from '../runtime/event-service.js';
 import type { CheckpointService } from '../runtime/checkpoint-service.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { RunRepository } from '../repository/postgres/run-repository.js';
+import { RunRepository } from '@openintern/repository/postgres';
 import type { ToolApprovalManager } from '../runtime/tool-scheduler.js';
 
 export interface RunsRouterConfig {

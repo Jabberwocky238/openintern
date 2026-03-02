@@ -9,9 +9,9 @@ import type { FeishuSyncService } from '../integrations/feishu/sync-service.js';
 import type { MineruIngestService } from '../integrations/mineru/ingest-service.js';
 import type { SkillRegistry } from '../skill/registry.js';
 import type { EscalationService } from '../escalation-service.js';
-import type { GroupRepository } from '../../repository/postgres/group-repository.js';
-import type { RunRepository } from '../../repository/postgres/run-repository.js';
-import type { RoleRepository } from '../../repository/postgres/role-repository.js';
+import type { GroupRepository } from '@openintern/repository/postgres';
+import type { RunRepository } from '@openintern/repository/postgres';
+import type { RoleRepository } from '@openintern/repository/postgres';
 import { ToolError } from '../../../utils/errors.js';
 
 export type ToolHandler = (params: Record<string, unknown>) => Promise<unknown>;

@@ -12,7 +12,7 @@ import { Router, type Request, type Response } from 'express';
 import { CreateSkillSchema } from '../../types/skill.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { SkillRepository } from '../repository/postgres/skill-repository.js';
+import { SkillRepository } from '@openintern/repository/postgres';
 
 export interface SkillsRouterConfig {
   skillRepository: SkillRepository;

@@ -39,11 +39,11 @@ import {
   PlanRepository,
   RunRepository,
 } from './runtime/index.js';
-import { RoleRepository } from './repository/postgres/role-repository.js';
-import { GroupRepository } from './repository/postgres/group-repository.js';
-import { SkillRepository } from './repository/postgres/skill-repository.js';
-import { PluginRepository } from './repository/postgres/plugin-repository.js';
-import { FeishuRepository } from './repository/postgres/feishu-repository.js';
+import { RoleRepository } from '@openintern/repository/postgres';
+import { GroupRepository } from '@openintern/repository/postgres';
+import { SkillRepository } from '@openintern/repository/postgres';
+import { PluginRepository } from '@openintern/repository/postgres';
+import { FeishuRepository } from '@openintern/repository/postgres';
 import { FeishuClient } from './runtime/integrations/feishu/client.js';
 import { FeishuImService } from './channels/feishu/im-service.js';
 import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js';
