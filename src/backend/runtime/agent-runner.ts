@@ -16,7 +16,7 @@ import { TokenBudgetManager } from './token-budget-manager.js';
 import { ToolCallScheduler, RunSuspendedError } from './tool-scheduler.js';
 import type { ToolResult } from '../../types/agent.js';
 import type { AgentContext } from './tool-policy.js';
-import type { GroupWithRoles } from '@openintern/repository/postgres';
+import type { GroupWithRoles } from '@openintern/repository';
 import { formatToolResultMessageContent, summarizeToolResultForEvent } from './tool-result-content.js';
 
 export interface RunnerContext {
@@ -467,7 +467,7 @@ export class SingleAgentRunner implements AgentRunner {
             if (firstToolCall) {
               messages.push({
                 role: 'tool',
-                content: 'Error: Doom loop detected ï¿½?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
+                content: 'Error: Doom loop detected ï¿?you are repeating the same tool call with identical parameters. Try a different approach or provide a final answer.',
                 toolCallId: firstToolCall.id,
               });
             }
@@ -932,3 +932,5 @@ export class SingleAgentRunner implements AgentRunner {
     });
   }
 }
+
+

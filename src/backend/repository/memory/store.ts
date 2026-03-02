@@ -51,3 +51,8 @@ export class MemoryRepositoryStore {
 }
 
 export const defaultMemoryRepositoryStore = new MemoryRepositoryStore();
+
+export function resolveMemoryRepositoryStore(candidate?: unknown): MemoryRepositoryStore {
+  return candidate instanceof MemoryRepositoryStore ? candidate : defaultMemoryRepositoryStore;
+}
+

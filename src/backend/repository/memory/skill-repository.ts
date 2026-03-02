@@ -3,10 +3,14 @@ import { NotFoundError } from '../../../utils/errors.js';
 import { generateSkillId } from '../../../utils/ids.js';
 import type { ISkillRepository } from '../interfaces/skill-repository.js';
 import { clone, nowIso } from './helpers.js';
-import { defaultMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
+import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
 
 export class SkillRepository implements ISkillRepository {
-  constructor(private readonly store: MemoryRepositoryStore = defaultMemoryRepositoryStore) {}
+  private readonly store: MemoryRepositoryStore;
+
+  constructor(storeOrPool?: unknown) {
+    this.store = resolveMemoryRepositoryStore(storeOrPool);
+  }
 
   async create(input: CreateSkill): Promise<Skill> {
     const now = nowIso();
@@ -63,3 +67,4 @@ export class SkillRepository implements ISkillRepository {
     return this.store.skills.delete(id);
   }
 }
+

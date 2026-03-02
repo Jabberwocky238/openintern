@@ -339,3 +339,4 @@ describe('RuntimeToolRouter MCP protocol behavior', () => {
     expect(result.error).toMatch(/invalid|schema/i);
   });
 });
+

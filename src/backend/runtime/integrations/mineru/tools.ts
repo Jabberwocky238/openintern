@@ -98,3 +98,4 @@ function parseOptions(raw: unknown): MineruExtractOptions | undefined {
     ...(extractString(o['data_id']) ? { data_id: extractString(o['data_id']) as string } : {}),
   };
 }
+

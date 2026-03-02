@@ -497,3 +497,4 @@ export const POSTGRES_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS run_task_items_child_idx
     ON run_task_items (child_run_id)`,
 ];
+

@@ -26,16 +26,16 @@ import { CreateGroupSchema, AddMemberSchema } from '../../types/orchestrator.js'
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
 import { generateRunId } from '../../utils/ids.js';
 import { logger } from '../../utils/logger.js';
-import { GroupRepository } from '@openintern/repository/postgres';
+import type { IGroupRepository } from '@openintern/repository';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { RoleRepository } from '@openintern/repository/postgres';
-import { RunRepository } from '@openintern/repository/postgres';
+import type { IRoleRepository } from '@openintern/repository';
+import type { IRunRepository } from '@openintern/repository';
 import { RunQueue } from '../queue/run-queue.js';
 
 export interface GroupsRouterConfig {
-  groupRepository: GroupRepository;
-  roleRepository: RoleRepository;
-  runRepository: RunRepository;
+  groupRepository: IGroupRepository;
+  roleRepository: IRoleRepository;
+  runRepository: IRunRepository;
   runQueue: RunQueue;
 }
 
@@ -389,3 +389,8 @@ function handleError(res: Response, err: unknown): void {
     error: { code: 'INTERNAL_ERROR', message },
   });
 }
+
+
+
+
+

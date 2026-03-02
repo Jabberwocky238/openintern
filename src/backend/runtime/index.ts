@@ -1,14 +1,14 @@
-export { RunRepository } from '@openintern/repository/postgres';
-export { PlanRepository } from '@openintern/repository/postgres';
+export { RunRepository } from '@openintern/repository';
+export { PlanRepository } from '@openintern/repository';
 export { EventService } from './event-service.js';
 export { CheckpointService } from './checkpoint-service.js';
 export { MemoryService } from './memory-service.js';
 export { EscalationService, type EscalationServiceConfig } from './escalation-service.js';
 export { KnowledgeDepositor, type KnowledgeDepositorConfig } from './knowledge-depositor.js';
-export { PluginRepository } from '@openintern/repository/postgres';
-export type { PluginRow, PluginJobRow, PluginKvRow } from '@openintern/repository/postgres';
+export { PluginRepository } from '@openintern/repository';
+export type { PluginRow, PluginJobRow, PluginKvRow } from '@openintern/repository';
 export type { Plugin, PluginContext } from './plugin/types.js';
-export { FeishuRepository, type FeishuSourceState } from '@openintern/repository/postgres';
+export { FeishuRepository, type FeishuSourceState } from '@openintern/repository';
 export { FeishuClient, type FeishuClientConfig } from './integrations/feishu/client.js';
 export { FeishuSyncService, type FeishuSyncServiceConfig } from './integrations/feishu/sync-service.js';
 export { MineruClient, type MineruClientConfig } from './integrations/mineru/client.js';
@@ -19,3 +19,5 @@ export { resolveRequestScope } from './request-scope.js';
 export { type ScopeContext, toScopeContext } from './scope.js';
 export { type DelegatedPermissions } from './models.js';
 export { UploadService } from './upload-service.js';
+
+

@@ -9,9 +9,9 @@ import type { FeishuSyncService } from '../integrations/feishu/sync-service.js';
 import type { MineruIngestService } from '../integrations/mineru/ingest-service.js';
 import type { SkillRegistry } from '../skill/registry.js';
 import type { EscalationService } from '../escalation-service.js';
-import type { GroupRepository } from '@openintern/repository/postgres';
-import type { RunRepository } from '@openintern/repository/postgres';
-import type { RoleRepository } from '@openintern/repository/postgres';
+import type { IGroupRepository } from '@openintern/repository';
+import type { IRunRepository } from '@openintern/repository';
+import type { IRoleRepository } from '@openintern/repository';
 import { ToolError } from '../../../utils/errors.js';
 
 export type ToolHandler = (params: Record<string, unknown>) => Promise<unknown>;
@@ -30,9 +30,9 @@ export interface ToolContext {
   mineruIngestService: MineruIngestService | undefined;
   workDir: string;
   escalationService: EscalationService | undefined;
-  groupRepository: GroupRepository | undefined;
-  runRepository: RunRepository | undefined;
-  roleRepository: RoleRepository | undefined;
+  groupRepository: IGroupRepository | undefined;
+  runRepository: IRunRepository | undefined;
+  roleRepository: IRoleRepository | undefined;
   runQueue: { enqueue(runId: string): Promise<void> | void } | undefined;
   skillRegistry: SkillRegistry | null;
   scope: ScopeContext;
@@ -67,3 +67,8 @@ export function resolveWithinWorkDir(workDir: string, requestedPath: string, too
   }
   return resolvedPath;
 }
+
+
+
+
+

@@ -158,7 +158,7 @@ export class SerialOrchestrator {
               }
             );
 
-            // Lead produced output â†’ orchestration complete
+            // Lead produced output â†?orchestration complete
             yield this.createOrchestratorEvent(
               ctx,
               generateStepId(totalSteps),
@@ -333,3 +333,4 @@ export class SerialOrchestrator {
     } as Extract<Event, { type: T }>;
   }
 }
+

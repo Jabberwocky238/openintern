@@ -350,7 +350,7 @@ export class RunQueue extends EventEmitter {
         this.emit('run.cancelled', cancelledRun);
         logger.info('Run cancelled while running', { runId: run.run_id });
       } else if (finalStatus === 'suspended') {
-        // Run suspended to disk â€” don't track in completedRuns, it will be re-enqueued on resume
+        // Run suspended to disk â€?don't track in completedRuns, it will be re-enqueued on resume
         logger.info('Run suspended to disk', { runId: run.run_id });
       } else if (finalStatus === 'failed') {
         const failedRun: QueuedRun = {
@@ -536,3 +536,4 @@ export class RunQueue extends EventEmitter {
     }
   }
 }
+

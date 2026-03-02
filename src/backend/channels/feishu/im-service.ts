@@ -1,6 +1,6 @@
 import type { QueuedRun } from '../../../types/api.js';
 import type { RunStatus } from '../../runtime/models.js';
-import type { RunRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
 import type { RunQueue } from '../../queue/run-queue.js';
 import type { FeishuClient, FeishuMessageReceiveIdType } from '../../runtime/integrations/feishu/client.js';
 import { generateRunId } from '../../../utils/ids.js';
@@ -144,7 +144,7 @@ export class FeishuImService {
   private readonly defaultAgentId: string;
 
   constructor(
-    private readonly runRepository: RunRepository,
+    private readonly runRepository: IRunRepository,
     private readonly runQueue: RunQueue,
     private readonly feishuClient: FeishuClient | null,
     private readonly config: FeishuImServiceConfig
@@ -427,3 +427,8 @@ export class FeishuImService {
     }
   }
 }
+
+
+
+
+

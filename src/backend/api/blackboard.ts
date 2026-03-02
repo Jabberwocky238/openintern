@@ -12,14 +12,14 @@ import { z } from 'zod';
 import { MemoryTypeSchema } from '../../types/memory.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { GroupRepository } from '@openintern/repository/postgres';
+import type { IGroupRepository } from '@openintern/repository';
 import { MemoryService } from '../runtime/memory-service.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { RoleRepository } from '@openintern/repository/postgres';
+import type { IRoleRepository } from '@openintern/repository';
 
 export interface BlackboardRouterConfig {
-  groupRepository: GroupRepository;
-  roleRepository: RoleRepository;
+  groupRepository: IGroupRepository;
+  roleRepository: IRoleRepository;
   memoryService: MemoryService;
 }
 
@@ -170,3 +170,8 @@ function handleError(res: Response, err: unknown): void {
     error: { code: 'INTERNAL_ERROR', message },
   });
 }
+
+
+
+
+

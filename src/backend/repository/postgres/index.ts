@@ -7,3 +7,19 @@ export { SkillRepository } from './skill-repository.js';
 export { PluginRepository } from './plugin-repository.js';
 export type { PluginRow, PluginJobRow, PluginKvRow } from './plugin-repository.js';
 export { FeishuRepository, type FeishuSourceState } from './feishu-repository.js';
+export {
+  createPostgresPool,
+  getPostgresPool,
+  runPostgresMigrations,
+  closeSharedPostgresPool,
+  query,
+  withTransaction,
+  type PostgresOptions,
+} from './pool.js';
+export type {
+  IPostgresClient,
+  IPostgresPool,
+  IPostgresQueryable,
+  PostgresQueryResult,
+} from '../interfaces/postgres-client.js';
+

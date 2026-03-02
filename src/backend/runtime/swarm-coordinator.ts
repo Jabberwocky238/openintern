@@ -1,16 +1,16 @@
-import type { RunRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
 import type { CheckpointService } from './checkpoint-service.js';
 import type { RunDependency } from './models.js';
 import { logger } from '../../utils/logger.js';
 
 export interface SwarmCoordinatorConfig {
-  runRepository: RunRepository;
+  runRepository: IRunRepository;
   checkpointService: CheckpointService;
   enqueueRun: (runId: string) => void;
 }
 
 export class SwarmCoordinator {
-  private readonly runRepo: RunRepository;
+  private readonly runRepo: IRunRepository;
   private readonly checkpointService: CheckpointService;
   private readonly enqueueRun: (runId: string) => void;
 
@@ -40,7 +40,7 @@ export class SwarmCoordinator {
 
     if (pendingCount > 0) return; // siblings still running
 
-    // All children done ï¿½?collect results and wake parent
+    // All children done ï¿?collect results and wake parent
     const deps = await this.runRepo.listDependenciesByParent(dep.parentRunId);
     await this.injectChildResults(dep.parentRunId, deps);
     await this.runRepo.setRunResumedFromSuspension(dep.parentRunId);
@@ -88,3 +88,8 @@ export class SwarmCoordinator {
     );
   }
 }
+
+
+
+
+

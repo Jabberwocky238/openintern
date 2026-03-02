@@ -671,7 +671,7 @@ describe('RuntimeToolRouter', () => {
         skillRegistry: registry,
       });
 
-      // Agent with no explicit allow/deny â€” high risk tool requires approval by default
+      // Agent with no explicit allow/deny â€?high risk tool requires approval by default
       const result = await router.callTool('memory_write', {
         type: 'episodic',
         text: 'test',
@@ -717,3 +717,4 @@ describe('RuntimeToolRouter', () => {
     });
   });
 });
+

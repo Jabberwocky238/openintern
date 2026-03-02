@@ -2,13 +2,20 @@ import type { Event } from '../../../types/events.js';
 import type { RunDependency } from '../../runtime/models.js';
 import type { ScopeContext } from '../../runtime/scope.js';
 import type { RunMessageRecord } from '../interfaces/run-repository.js';
+import type { IPostgresClient } from '../interfaces/postgres-client.js';
 import { clone, matchesScope, nowIso } from './helpers.js';
 import { type MemoryRepositoryStore } from './store.js';
 
 export abstract class RunRepositoryStorageBase {
   constructor(protected readonly store: MemoryRepositoryStore) {}
 
-  async createCheckpoint(runId: string, agentId: string, stepId: string, state: Record<string, unknown>): Promise<void> {
+  async createCheckpoint(
+    runId: string,
+    agentId: string,
+    stepId: string,
+    state: Record<string, unknown>,
+    _client?: IPostgresClient
+  ): Promise<void> {
     this.store.checkpoints.push({
       id: this.store.nextCheckpointId++,
       runId,
@@ -25,7 +32,7 @@ export abstract class RunRepositoryStorageBase {
     return row ? { stepId: row.stepId, state: clone(row.state) } : null;
   }
 
-  async cancelPendingRun(runId: string, scope: ScopeContext): Promise<boolean> {
+  async cancelPendingRun(runId: string, scope: ScopeContext, _client?: IPostgresClient): Promise<boolean> {
     const run = this.store.runs.get(runId);
     if (!run || run.status !== 'pending' || !matchesScope(scope, run)) {
       return false;
@@ -40,7 +47,8 @@ export abstract class RunRepositoryStorageBase {
     agentId: string,
     stepId: string,
     messages: RunMessageRecord[],
-    startOrdinal: number
+    startOrdinal: number,
+    _client?: IPostgresClient
   ): Promise<void> {
     for (let index = 0; index < messages.length; index += 1) {
       const message = messages[index];
@@ -55,6 +63,29 @@ export abstract class RunRepositoryStorageBase {
         message: clone(message),
       });
     }
+  }
+
+  async saveCheckpointSnapshot(input: {
+    runId: string;
+    agentId: string;
+    stepId: string;
+    messages: RunMessageRecord[];
+    startOrdinal: number;
+    state: Record<string, unknown>;
+  }): Promise<void> {
+    await this.appendMessages(
+      input.runId,
+      input.agentId,
+      input.stepId,
+      input.messages,
+      input.startOrdinal
+    );
+    await this.createCheckpoint(
+      input.runId,
+      input.agentId,
+      input.stepId,
+      input.state
+    );
   }
 
   async loadMessages(runId: string, agentId: string): Promise<RunMessageRecord[]> {
@@ -140,3 +171,4 @@ export abstract class RunRepositoryStorageBase {
     return this.store.events.filter((row) => row.event.run_id === runId).map((row) => row.event);
   }
 }
+

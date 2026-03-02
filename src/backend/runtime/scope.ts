@@ -66,3 +66,4 @@ export function appendMemoryScopePredicate(
     clauses.push(`${prefix}agent_instance_id = $${idx}`);
   }
 }
+

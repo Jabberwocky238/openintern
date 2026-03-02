@@ -110,3 +110,4 @@ export class CompactionService {
     return lines.join('\n');
   }
 }
+

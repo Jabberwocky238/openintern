@@ -176,3 +176,4 @@ describe('SwarmCoordinator', () => {
     expect(parsed.child_results?.map((r) => r.child_run_id)).toEqual(['run_child_1', 'run_child_2']);
   });
 });
+

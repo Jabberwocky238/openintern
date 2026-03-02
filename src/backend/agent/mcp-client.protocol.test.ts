@@ -263,3 +263,4 @@ describe('MCPClient protocol (fake server)', () => {
     await expect(client.callTool('fake.echo', { value: 'abc' })).rejects.toThrow(/invalid|schema/i);
   });
 });
+

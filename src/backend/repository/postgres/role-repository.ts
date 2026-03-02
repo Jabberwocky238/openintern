@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { Role, CreateRole } from '../../../types/orchestrator.js';
 import { generateRoleId } from '../../../utils/ids.js';
 import { NotFoundError } from '../../../utils/errors.js';
@@ -37,7 +37,7 @@ function mapRoleRow(row: RoleRow): Role {
 }
 
 export class RoleRepository implements IRoleRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: IPostgresPool) {}
 
   async create(input: CreateRole): Promise<Role> {
     const id = generateRoleId();
@@ -182,3 +182,5 @@ export class RoleRepository implements IRoleRepository {
     };
   }
 }
+
+

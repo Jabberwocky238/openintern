@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg';
+import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
 import type { LLMConfigRequest } from '../../../types/api.js';
 import type { RunMeta } from '../../../types/run.js';
 import { NotFoundError } from '../../../utils/errors.js';
@@ -155,7 +155,7 @@ function resolveMessageType(
 }
 
 export class RunRepository implements IRunRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: IPostgresPool) {}
 
   async createRun(input: RunCreateInput): Promise<RunRecord> {
     const runMode = input.runMode ?? (input.groupId ? 'group' : 'single');
@@ -591,7 +591,7 @@ export class RunRepository implements IRunRepository {
     agentId: string,
     stepId: string,
     state: Record<string, unknown>,
-    client?: PoolClient
+    client?: IPostgresClient
   ): Promise<void> {
     const db = client ?? this.pool;
     await db.query(
@@ -627,7 +627,7 @@ export class RunRepository implements IRunRepository {
   async cancelPendingRun(
     runId: string,
     scope: ScopeContext,
-    client?: PoolClient
+    client?: IPostgresClient
   ): Promise<boolean> {
     const db = client ?? this.pool;
     const clauses: string[] = ['id = $1', `status = 'pending'`];
@@ -652,7 +652,7 @@ export class RunRepository implements IRunRepository {
     stepId: string,
     messages: Array<{ role: string; content: unknown; toolCallId?: string; toolCalls?: unknown }>,
     startOrdinal: number,
-    client?: PoolClient
+    client?: IPostgresClient
   ): Promise<void> {
     if (messages.length === 0) return;
     const db = client ?? this.pool;
@@ -680,6 +680,43 @@ export class RunRepository implements IRunRepository {
       VALUES ${values.join(',')}`,
       params
     );
+  }
+
+  async saveCheckpointSnapshot(input: {
+    runId: string;
+    agentId: string;
+    stepId: string;
+    messages: Array<{ role: string; content: unknown; toolCallId?: string; toolCalls?: unknown }>;
+    startOrdinal: number;
+    state: Record<string, unknown>;
+  }): Promise<void> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      if (input.messages.length > 0) {
+        await this.appendMessages(
+          input.runId,
+          input.agentId,
+          input.stepId,
+          input.messages,
+          input.startOrdinal,
+          client
+        );
+      }
+      await this.createCheckpoint(
+        input.runId,
+        input.agentId,
+        input.stepId,
+        input.state,
+        client
+      );
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async loadMessages(
@@ -830,3 +867,5 @@ export class RunRepository implements IRunRepository {
     return row ? mapDepRow(row) : null;
   }
 }
+
+

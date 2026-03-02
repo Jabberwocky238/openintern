@@ -1,9 +1,9 @@
-import type { Pool } from 'pg';
+import type { IPostgresPool } from '@openintern/repository';
 import type { MemoryService } from '../memory-service.js';
 
 /** Shared dependencies available to all plugins. */
 export interface PluginContext {
-  pool: Pool;
+  pool: IPostgresPool;
   memoryService: MemoryService;
 }
 
@@ -14,3 +14,4 @@ export interface Plugin {
   start(): void;
   stop(): void;
 }
+

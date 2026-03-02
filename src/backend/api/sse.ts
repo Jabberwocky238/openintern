@@ -309,3 +309,4 @@ export class SSEManager {
     logger.info('SSE manager shutdown complete');
   }
 }
+

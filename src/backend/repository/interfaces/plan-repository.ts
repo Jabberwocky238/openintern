@@ -32,3 +32,4 @@ export interface IPlanRepository {
   listReadyTasksByRunId(runId: string): Promise<PlanTaskRecord[]>;
   markTasksRunning(runId: string, dispatches: TaskDispatchInput[]): Promise<void>;
 }
+

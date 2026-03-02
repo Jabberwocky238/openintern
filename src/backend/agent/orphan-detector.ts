@@ -66,3 +66,4 @@ export function generateSyntheticResults(orphans: OrphanedToolCall[]): Message[]
     toolCallId: orphan.toolCall.id,
   }));
 }
+

@@ -32,13 +32,13 @@ import { SSEManager } from './sse.js';
 import { EventService } from '../runtime/event-service.js';
 import type { CheckpointService } from '../runtime/checkpoint-service.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { RunRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
 import type { ToolApprovalManager } from '../runtime/tool-scheduler.js';
 
 export interface RunsRouterConfig {
   runQueue: RunQueue;
   sseManager: SSEManager;
-  runRepository: RunRepository;
+  runRepository: IRunRepository;
   eventService: EventService;
   checkpointService?: CheckpointService;
   approvalManager?: ToolApprovalManager;
@@ -84,7 +84,7 @@ function parseModifiedArgs(value: unknown): Record<string, unknown> | undefined 
 }
 
 function mapRunToMeta(
-  run: Awaited<ReturnType<RunRepository['requireRun']>>,
+  run: Awaited<ReturnType<IRunRepository['requireRun']>>,
   counters: { eventCount: number; toolCalls: number }
 ): RunMeta {
   const startedAt = run.startedAt ?? run.createdAt;
@@ -734,3 +734,8 @@ export function createRunsRouter(config: RunsRouterConfig): Router {
   logger.info('Runs router initialized (postgres mode)');
   return router;
 }
+
+
+
+
+

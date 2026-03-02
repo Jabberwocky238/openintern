@@ -85,3 +85,4 @@ export interface IFeishuRepository {
   getSourceState(connectorId: string, sourceKey: string): Promise<FeishuSourceStateView | null>;
   upsertSourceState(input: UpsertFeishuSourceStateInput): Promise<void>;
 }
+

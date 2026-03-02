@@ -71,3 +71,4 @@ describe('normalizeMineruOutputToChunks', () => {
     expect(result.chunks.every((chunk) => chunk.text.length <= 400)).toBe(true);
   });
 });
+

@@ -14,11 +14,11 @@ import { ToolCallScheduler, ToolApprovalManager } from './tool-scheduler.js';
 import { EscalationService } from './escalation-service.js';
 import type { CheckpointService } from './checkpoint-service.js';
 import type { EventService } from './event-service.js';
-import type { GroupRepository } from '@openintern/repository/postgres';
-import type { RoleRepository } from '@openintern/repository/postgres';
-import type { RunRepository } from '@openintern/repository/postgres';
-import type { PlanRepository } from '@openintern/repository/postgres';
-import type { SkillRepository } from '@openintern/repository/postgres';
+import type { IGroupRepository } from '@openintern/repository';
+import type { IRoleRepository } from '@openintern/repository';
+import type { IRunRepository } from '@openintern/repository';
+import type { IPlanRepository } from '@openintern/repository';
+import type { ISkillRepository } from '@openintern/repository';
 import type { FeishuSyncService } from './integrations/feishu/sync-service.js';
 import type { MineruIngestService } from './integrations/mineru/ingest-service.js';
 import { refreshSkillRegistry } from './executor/skill-refresh.js';
@@ -34,15 +34,15 @@ type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';
 // ─── Config & Result ─────────────────────────────────────────
 
 export interface RuntimeExecutorConfig {
-  runRepository: RunRepository;
+  runRepository: IRunRepository;
   eventService: EventService;
   checkpointService: CheckpointService;
   memoryService: MemoryService;
-  skillRepository: SkillRepository;
+  skillRepository: ISkillRepository;
   sseManager: SSEManager;
-  groupRepository: GroupRepository;
-  roleRepository: RoleRepository;
-  planRepository?: PlanRepository;
+  groupRepository: IGroupRepository;
+  roleRepository: IRoleRepository;
+  planRepository?: IPlanRepository;
   feishuSyncService?: FeishuSyncService;
   mineruIngestService?: MineruIngestService;
   maxSteps: number;
@@ -106,7 +106,7 @@ function resolveModelConfig(run: QueuedRun, defaults: LLMConfig): LLMConfig {
   return mc;
 }
 
-function mapRunRecordToQueuedRun(run: Awaited<ReturnType<RunRepository['getRunById']>>): QueuedRun | null {
+function mapRunRecordToQueuedRun(run: Awaited<ReturnType<IRunRepository['getRunById']>>): QueuedRun | null {
   if (!run) return null;
   return {
     run_id: run.id,
@@ -470,3 +470,8 @@ export function createRuntimeExecutor(config: RuntimeExecutorConfig): RuntimeExe
 
   return { execute, approvalManager: sharedApprovalManager };
 }
+
+
+
+
+

@@ -12,10 +12,10 @@ import type { IRunRepository } from '../interfaces/run-repository.js';
 import { clone, matchesScope, nowIso } from './helpers.js';
 import { resolveMessageType, toMeta } from './run-repository-helpers.js';
 import { RunRepositoryStorageBase } from './run-repository-storage-base.js';
-import { defaultMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
+import { resolveMemoryRepositoryStore } from './store.js';
 export class RunRepository extends RunRepositoryStorageBase implements IRunRepository {
-  constructor(store: MemoryRepositoryStore = defaultMemoryRepositoryStore) {
-    super(store);
+  constructor(storeOrPool?: unknown) {
+    super(resolveMemoryRepositoryStore(storeOrPool));
   }
   async createRun(input: RunCreateInput): Promise<RunRecord> {
     const run: RunRecord = {
@@ -195,3 +195,4 @@ export class RunRepository extends RunRepositoryStorageBase implements IRunRepos
     return { items, nextCursor };
   }
 }
+

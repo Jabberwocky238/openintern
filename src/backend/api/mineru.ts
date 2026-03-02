@@ -293,3 +293,4 @@ async function processJob(
   job.completed_at = new Date().toISOString();
   broadcastDone(job.job_id);
 }
+

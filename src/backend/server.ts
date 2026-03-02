@@ -39,11 +39,11 @@ import {
   PlanRepository,
   RunRepository,
 } from './runtime/index.js';
-import { RoleRepository } from '@openintern/repository/postgres';
-import { GroupRepository } from '@openintern/repository/postgres';
-import { SkillRepository } from '@openintern/repository/postgres';
-import { PluginRepository } from '@openintern/repository/postgres';
-import { FeishuRepository } from '@openintern/repository/postgres';
+import { RoleRepository } from '@openintern/repository';
+import { GroupRepository } from '@openintern/repository';
+import { SkillRepository } from '@openintern/repository';
+import { PluginRepository } from '@openintern/repository';
+import { FeishuRepository } from '@openintern/repository';
 import { FeishuClient } from './runtime/integrations/feishu/client.js';
 import { FeishuImService } from './channels/feishu/im-service.js';
 import { FeishuSyncService } from './runtime/integrations/feishu/sync-service.js';
@@ -145,7 +145,7 @@ export function createApp(config: Partial<ServerConfig> = {}): {
   const pluginRepository = new PluginRepository(pool);
   const feishuRepository = new FeishuRepository(pluginRepository);
   const eventService = new EventService(runRepository);
-  const checkpointService = new CheckpointService(runRepository, pool);
+  const checkpointService = new CheckpointService(runRepository);
   const requestedEmbedding = finalConfig.embeddingConfig ?? finalConfig.embedding ?? {
     provider: 'hash',
     dimension: 256,
@@ -528,3 +528,5 @@ if (isMainModule) {
 
   void server.start();
 }
+
+

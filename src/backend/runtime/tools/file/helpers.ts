@@ -162,3 +162,4 @@ export function buildReplaceInFileError(matchCount: number): string {
   }
   return `search_block must match exactly once after normalization (matches=${matchCount}). ${guidance}`;
 }
+

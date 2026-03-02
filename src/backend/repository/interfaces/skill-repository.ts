@@ -8,3 +8,4 @@ export interface ISkillRepository {
   updateHealthStatus(id: string, status: Skill['health_status']): Promise<Skill>;
   delete(id: string): Promise<boolean>;
 }
+

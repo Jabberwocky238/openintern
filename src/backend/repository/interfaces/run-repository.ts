@@ -1,5 +1,6 @@
 import type { Event } from '../../../types/events.js';
 import type { RunMeta } from '../../../types/run.js';
+import type { IPostgresClient } from './postgres-client.js';
 import type {
   DelegatedPermissions,
   EventCursorPage,
@@ -54,20 +55,30 @@ export interface IRunRepository {
     runId: string,
     agentId: string,
     stepId: string,
-    state: Record<string, unknown>
+    state: Record<string, unknown>,
+    client?: IPostgresClient
   ): Promise<void>;
   getLatestCheckpoint(
     runId: string,
     agentId: string
   ): Promise<{ stepId: string; state: Record<string, unknown> } | null>;
-  cancelPendingRun(runId: string, scope: ScopeContext): Promise<boolean>;
+  cancelPendingRun(runId: string, scope: ScopeContext, client?: IPostgresClient): Promise<boolean>;
   appendMessages(
     runId: string,
     agentId: string,
     stepId: string,
     messages: RunMessageRecord[],
-    startOrdinal: number
+    startOrdinal: number,
+    client?: IPostgresClient
   ): Promise<void>;
+  saveCheckpointSnapshot(input: {
+    runId: string;
+    agentId: string;
+    stepId: string;
+    messages: RunMessageRecord[];
+    startOrdinal: number;
+    state: Record<string, unknown>;
+  }): Promise<void>;
   loadMessages(runId: string, agentId: string): Promise<RunMessageRecord[]>;
   countEventsAndTools(runId: string): Promise<{ eventCount: number; toolCalls: number }>;
   createDependency(
@@ -88,3 +99,4 @@ export interface IRunRepository {
 }
 
 export type { DelegatedPermissions };
+

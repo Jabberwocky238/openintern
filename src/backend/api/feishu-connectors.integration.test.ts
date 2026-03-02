@@ -145,3 +145,4 @@ describeIfDatabase('Feishu connectors API', () => {
     expect(triggerBody.error.code).toBe('FEISHU_SYNC_DISABLED');
   });
 });
+

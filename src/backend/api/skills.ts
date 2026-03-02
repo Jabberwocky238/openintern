@@ -12,10 +12,10 @@ import { Router, type Request, type Response } from 'express';
 import { CreateSkillSchema } from '../../types/skill.js';
 import { AgentError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { SkillRepository } from '@openintern/repository/postgres';
+import type { ISkillRepository } from '@openintern/repository';
 
 export interface SkillsRouterConfig {
-  skillRepository: SkillRepository;
+  skillRepository: ISkillRepository;
 }
 
 export function createSkillsRouter(config: SkillsRouterConfig): Router {
@@ -102,3 +102,8 @@ function handleError(res: Response, err: unknown): void {
     error: { code: 'INTERNAL_ERROR', message },
   });
 }
+
+
+
+
+

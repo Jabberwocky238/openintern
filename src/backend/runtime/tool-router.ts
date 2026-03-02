@@ -13,7 +13,7 @@ import type { AgentContext } from './tool-policy.js';
 import { ToolPolicy } from './tool-policy.js';
 import type { SkillRegistry } from './skill/registry.js';
 import type { EscalationService } from './escalation-service.js';
-import type { GroupRepository } from '@openintern/repository/postgres';
+import type { IGroupRepository } from '@openintern/repository';
 import type { RuntimeTool, ToolContext } from './tools/_helpers.js';
 
 // ─── Tool modules ────────────────────────────────────────
@@ -119,9 +119,9 @@ export interface RuntimeToolRouterConfig {
   timeoutMs?: number;
   skillRegistry?: SkillRegistry;
   escalationService?: EscalationService;
-  groupRepository?: GroupRepository;
-  runRepository?: import('@openintern/repository/postgres').RunRepository;
-  roleRepository?: import('@openintern/repository/postgres').RoleRepository;
+  groupRepository?: IGroupRepository;
+  runRepository?: import('@openintern/repository').IRunRepository;
+  roleRepository?: import('@openintern/repository').IRoleRepository;
   runQueue?: { enqueue(runId: string): Promise<void> | void };
   currentRunId?: string;
   currentSessionKey?: string;
@@ -480,3 +480,8 @@ export class RuntimeToolRouter {
     return MCP_RETRYABLE_ERROR_MARKERS.some((marker) => message.includes(marker));
   }
 }
+
+
+
+
+

@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { IPostgresPool, IPostgresClient } from '../interfaces/postgres-client.js';
 import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
 import type { IPlanRepository } from '../interfaces/plan-repository.js';
 
@@ -100,7 +100,7 @@ function mapTaskRow(row: TaskRow): PlanTaskRecord {
 }
 
 export class PlanRepository implements IPlanRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: IPostgresPool) {}
 
   async getPlanByRunId(runId: string): Promise<PlanRecord | null> {
     const result = await this.pool.query<PlanRow>(
@@ -269,4 +269,6 @@ export class PlanRepository implements IPlanRepository {
     );
   }
 }
+
+
 

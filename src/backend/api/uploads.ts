@@ -132,3 +132,4 @@ export function createUploadsRouter(config: UploadsRouterConfig): Router {
   logger.info('Uploads router initialized');
   return router;
 }
+

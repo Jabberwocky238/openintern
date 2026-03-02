@@ -37,3 +37,4 @@ export function resolveRequestScope(req: Request): ScopeContext {
     projectId,
   };
 }
+

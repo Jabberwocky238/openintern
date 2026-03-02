@@ -101,7 +101,7 @@ export class ToolPolicy {
       return {
         allowed: false,
         decision: 'ask',
-        reason: `Tool "${tool.name}" has high risk level â€” requires approval for role "${agent.roleId}"`,
+        reason: `Tool "${tool.name}" has high risk level â€?requires approval for role "${agent.roleId}"`,
       };
     }
 
@@ -124,9 +124,9 @@ export class ToolPolicy {
    * Check tool access considering delegated permissions from a parent PA run.
    *
    * Implements intersection logic:
-   *   Effective permissions = Role permissions âˆ© Delegated permissions
-   *   - denied_tools = Role.denied âˆª Delegated.denied (union: either deny blocks)
-   *   - allowed_tools = Role.allowed âˆ© Delegated.allowed (intersection: both must allow)
+   *   Effective permissions = Role permissions âˆ?Delegated permissions
+   *   - denied_tools = Role.denied âˆ?Delegated.denied (union: either deny blocks)
+   *   - allowed_tools = Role.allowed âˆ?Delegated.allowed (intersection: both must allow)
    *
    * Priority (highest to lowest):
    *   1. Delegated denied_tools -> deny
@@ -209,3 +209,4 @@ export class ToolPolicy {
     };
   }
 }
+

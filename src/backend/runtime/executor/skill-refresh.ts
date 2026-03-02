@@ -1,6 +1,6 @@
 import { logger } from '../../../utils/logger.js';
 import { SkillRegistry } from '../skill/registry.js';
-import type { SkillRepository } from '@openintern/repository/postgres';
+import type { ISkillRepository } from '@openintern/repository';
 import type { RuntimeToolRouter } from '../tool-router.js';
 
 export const BUILTIN_TOOL_RISK_LEVELS: Record<string, 'low' | 'medium' | 'high'> = {
@@ -25,7 +25,7 @@ export const BUILTIN_TOOL_RISK_LEVELS: Record<string, 'low' | 'medium' | 'high'>
 
 export async function refreshSkillRegistry(
   router: RuntimeToolRouter,
-  skillRepository: SkillRepository
+  skillRepository: ISkillRepository
 ): Promise<void> {
   const availableTools = router.listTools().map((t) => t.name);
   const registry = new SkillRegistry();
@@ -87,3 +87,8 @@ export async function refreshSkillRegistry(
 
   router.setSkillRegistry(registry);
 }
+
+
+
+
+

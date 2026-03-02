@@ -44,3 +44,4 @@ export interface IGroupRepository {
   }>;
   getGroupRuns(groupId: string, limit?: number, offset?: number): Promise<GroupRunRecord[]>;
 }
+

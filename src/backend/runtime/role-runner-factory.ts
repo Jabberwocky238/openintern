@@ -102,3 +102,4 @@ export class RoleRunnerFactory {
     return lines.join('\n');
   }
 }
+

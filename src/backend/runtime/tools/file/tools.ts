@@ -174,7 +174,7 @@ export function register(ctx: ToolContext): RuntimeTool[] {
           execFile('grep', args,
             { timeout: 15000, maxBuffer: 1024 * 1024 },
             (err, stdout) => {
-              // grep exits with code 1 when no matches found â€” not an error
+              // grep exits with code 1 when no matches found â€?not an error
               const exitCode = (err as NodeJS.ErrnoException & { status?: number })?.status;
               if (err && exitCode !== 1 && !stdout) {
                 reject(new ToolError(`grep failed: ${err.message}`, 'grep_files'));
@@ -284,3 +284,4 @@ export function register(ctx: ToolContext): RuntimeTool[] {
     },
   ];
 }
+

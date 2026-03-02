@@ -7,7 +7,7 @@ import type {
   PluginRowView,
 } from '../interfaces/plugin-repository.js';
 import { clone, nowIso } from './helpers.js';
-import { defaultMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
+import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
 
 export type PluginRow = PluginRowView;
 export type PluginJobRow = PluginJobRowView;
@@ -31,7 +31,11 @@ function polledAtMs(state: Record<string, unknown>): number {
 }
 
 export class PluginRepository implements IPluginRepository {
-  constructor(private readonly store: MemoryRepositoryStore = defaultMemoryRepositoryStore) {}
+  private readonly store: MemoryRepositoryStore;
+
+  constructor(storeOrPool?: unknown) {
+    this.store = resolveMemoryRepositoryStore(storeOrPool);
+  }
 
   async createPlugin(input: CreatePluginInput): Promise<PluginRow> {
     const now = nowIso();
@@ -212,3 +216,4 @@ export class PluginRepository implements IPluginRepository {
     });
   }
 }
+

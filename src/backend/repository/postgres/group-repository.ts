@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { Group, CreateGroup, GroupMember, AddMember } from '../../../types/orchestrator.js';
 import { generateGroupId, generateGroupMemberId, generateAgentInstanceId } from '../../../utils/ids.js';
 import { NotFoundError } from '../../../utils/errors.js';
@@ -65,7 +65,7 @@ function mapMemberRow(row: MemberRow): GroupMember {
 }
 
 export class GroupRepository implements IGroupRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: IPostgresPool) {}
 
   // ─── Group CRUD ──────────────────────────────────────────
 
@@ -381,3 +381,4 @@ export class GroupRepository implements IGroupRepository {
     });
   }
 }
+

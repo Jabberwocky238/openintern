@@ -1,41 +1,27 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
-import type { Pool } from 'pg';
 import { createPostgresPool, runPostgresMigrations } from '../db/index.js';
 import { generateRunId } from '../../utils/ids.js';
 import type { Message } from '../../types/agent.js';
 import { CheckpointService } from './checkpoint-service.js';
-import { RunRepository } from '@openintern/repository/postgres';
+import { RunRepository, type IRunRepository, type IPostgresPool } from '@openintern/repository';
 
 const describeIfDatabase = process.env['DATABASE_URL'] ? describe : describe.skip;
 
 function createUnitFixture(): {
   service: CheckpointService;
   runs: {
-    appendMessages: Mock;
-    createCheckpoint: Mock;
+    saveCheckpointSnapshot: Mock;
     getLatestCheckpoint: Mock;
     loadMessages: Mock;
   };
-  client: {
-    query: Mock;
-    release: Mock;
-  };
 } {
-  const client = {
-    query: vi.fn(async () => ({ rows: [] })),
-    release: vi.fn(),
-  };
-  const pool = {
-    connect: vi.fn(async () => client),
-  } as unknown as Pool;
   const runs = {
-    appendMessages: vi.fn(async () => undefined),
-    createCheckpoint: vi.fn(async () => undefined),
+    saveCheckpointSnapshot: vi.fn(async () => undefined),
     getLatestCheckpoint: vi.fn(async () => null),
     loadMessages: vi.fn(async () => []),
   };
-  const service = new CheckpointService(runs as unknown as RunRepository, pool);
-  return { service, runs, client };
+  const service = new CheckpointService(runs as unknown as IRunRepository);
+  return { service, runs };
 }
 
 describe('CheckpointService (unit)', () => {
@@ -49,42 +35,32 @@ describe('CheckpointService (unit)', () => {
       { role: 'tool', content: '{"ok":true}', toolCallId: 'tc_1' },
     ];
 
-    await service.save(
-      'run_test',
-      'main',
-      'step_0003',
-      messages,
-      3,
-      { plan: 'single-agent-loop' }
-    );
+    await service.save('run_test', 'main', 'step_0003', messages, 3, { plan: 'single-agent-loop' });
 
-    expect(runs.appendMessages).toHaveBeenCalledTimes(1);
-    const appendArgs = runs.appendMessages.mock.calls[0] as unknown[];
-    const appended = appendArgs[3] as Array<{ role: string }>;
-    expect(appended).toHaveLength(2);
-    expect(appended.map((m) => m.role)).toEqual(['assistant', 'tool']);
-    expect(appendArgs[4]).toBe(3);
+    expect(runs.saveCheckpointSnapshot).toHaveBeenCalledTimes(1);
+    const call = runs.saveCheckpointSnapshot.mock.calls[0]?.[0] as {
+      messages: Array<{ role: string }>;
+      startOrdinal: number;
+    };
+    expect(call.messages).toHaveLength(2);
+    expect(call.messages.map((m) => m.role)).toEqual(['assistant', 'tool']);
+    expect(call.startOrdinal).toBe(3);
   });
 
   it('stores slim checkpoint state without messages field', async () => {
     const { service, runs } = createUnitFixture();
-    const messages: Message[] = [
-      { role: 'user', content: 'hello' },
-    ];
+    const messages: Message[] = [{ role: 'user', content: 'hello' }];
     const workingState = {
       budget_state: { utilization: 0.2 },
       messages: [{ role: 'assistant', content: 'should not persist' }],
-      nested: {
-        messages: ['drop-me-too'],
-      },
+      nested: { messages: ['drop-me-too'] },
       marker: 'ok',
     };
 
     await service.save('run_test', 'main', 'step_0007', messages, 0, workingState);
 
-    expect(runs.createCheckpoint).toHaveBeenCalledTimes(1);
-    const checkpointArgs = runs.createCheckpoint.mock.calls[0] as unknown[];
-    const persisted = checkpointArgs[3] as Record<string, unknown>;
+    const call = runs.saveCheckpointSnapshot.mock.calls[0]?.[0] as { state: Record<string, unknown> };
+    const persisted = call.state;
     expect(persisted['step_id']).toBe('step_0007');
     expect(persisted['step_number']).toBe(7);
     expect(persisted['message_count']).toBe(1);
@@ -94,7 +70,7 @@ describe('CheckpointService (unit)', () => {
 });
 
 describeIfDatabase('CheckpointService (integration, Postgres)', () => {
-  let pool: Pool;
+  let pool: IPostgresPool;
   let runs: RunRepository;
   let service: CheckpointService;
   const createdRunIds: string[] = [];
@@ -119,7 +95,7 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
     pool = createPostgresPool();
     await runPostgresMigrations(pool);
     runs = new RunRepository(pool);
-    service = new CheckpointService(runs, pool);
+    service = new CheckpointService(runs);
   });
 
   afterEach(async () => {
@@ -144,7 +120,7 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
     await createRun(runId);
 
     const spy = vi
-      .spyOn(runs, 'createCheckpoint')
+      .spyOn(runs, 'saveCheckpointSnapshot')
       .mockRejectedValueOnce(new Error('simulated checkpoint UPSERT failure'));
 
     await expect(
@@ -216,3 +192,4 @@ describeIfDatabase('CheckpointService (integration, Postgres)', () => {
     expect(ordinals.rows.map((r) => r.ordinal)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 });
+

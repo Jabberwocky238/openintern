@@ -79,3 +79,4 @@ export interface IPluginRepository {
   getKv(pluginId: string, key: string): Promise<PluginKvRowView | null>;
   upsertKv(pluginId: string, key: string, value: Record<string, unknown>): Promise<void>;
 }
+

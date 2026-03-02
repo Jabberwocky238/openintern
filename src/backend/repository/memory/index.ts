@@ -8,3 +8,4 @@ export { PluginRepository } from './plugin-repository.js';
 export type { PluginRow, PluginJobRow, PluginKvRow } from './plugin-repository.js';
 export { FeishuRepository, type FeishuSourceState } from './feishu-repository.js';
 export { MemoryRepositoryStore, defaultMemoryRepositoryStore } from './store.js';
+

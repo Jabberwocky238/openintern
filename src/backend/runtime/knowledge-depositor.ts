@@ -1,12 +1,12 @@
 import type { MemoryScope } from '../../types/memory.js';
 import type { MemoryService } from './memory-service.js';
-import type { RunRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
 import type { ScopeContext } from './scope.js';
 import { logger } from '../../utils/logger.js';
 
 export interface KnowledgeDepositorConfig {
   memoryService: MemoryService;
-  runRepository: RunRepository;
+  runRepository: IRunRepository;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface KnowledgeDepositorConfig {
  */
 export class KnowledgeDepositor {
   private readonly memoryService: MemoryService;
-  private readonly runRepository: RunRepository;
+  private readonly runRepository: IRunRepository;
 
   constructor(config: KnowledgeDepositorConfig) {
     this.memoryService = config.memoryService;
@@ -92,3 +92,8 @@ export class KnowledgeDepositor {
     }
   }
 }
+
+
+
+
+

@@ -69,3 +69,4 @@ export function summarizeToolResultForEvent(result: ToolResult): unknown {
     preview: truncateWithMarker(serialized, TOOL_RESULT_EVENT_MAX_CHARS),
   };
 }
+

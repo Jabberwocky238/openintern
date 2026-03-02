@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EscalationService } from './escalation-service.js';
-import type { RunRepository } from '@openintern/repository/postgres';
-import type { GroupRepository } from '@openintern/repository/postgres';
+import type { RunRepository } from '@openintern/repository';
+import type { GroupRepository } from '@openintern/repository';
 import type { RunRecord } from './models.js';
 
 function createMockRunRecord(overrides: Partial<RunRecord> = {}): RunRecord {
@@ -395,3 +395,5 @@ describe('EscalationService', () => {
     });
   });
 });
+
+

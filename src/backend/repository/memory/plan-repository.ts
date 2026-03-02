@@ -1,14 +1,18 @@
 import type { PlanRecord, PlanTaskRecord } from '../../runtime/models.js';
 import type { CreatePlanInput, IPlanRepository, TaskDispatchInput } from '../interfaces/plan-repository.js';
 import { clone, nowIso } from './helpers.js';
-import { defaultMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
+import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
 
 function touchPlan(plan: PlanRecord): PlanRecord {
   return { ...plan, updatedAt: nowIso() };
 }
 
 export class PlanRepository implements IPlanRepository {
-  constructor(private readonly store: MemoryRepositoryStore = defaultMemoryRepositoryStore) {}
+  private readonly store: MemoryRepositoryStore;
+
+  constructor(storeOrPool?: unknown) {
+    this.store = resolveMemoryRepositoryStore(storeOrPool);
+  }
 
   async getPlanByRunId(runId: string): Promise<PlanRecord | null> {
     const plan = this.store.plansByRunId.get(runId);
@@ -145,3 +149,4 @@ export class PlanRepository implements IPlanRepository {
     }
   }
 }
+

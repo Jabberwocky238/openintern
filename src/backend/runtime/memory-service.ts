@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg';
+import type { IPostgresClient, IPostgresPool } from '@openintern/repository';
 import type {
   BlackboardWriteRequest,
   MemoryGetResponse,
@@ -101,7 +101,7 @@ const PROJECT_SHARED_USER_ID = 'user_project_shared';
 
 export class MemoryService {
   constructor(
-    private readonly pool: Pool,
+    private readonly pool: IPostgresPool,
     private readonly embeddingProvider: IEmbeddingProvider
   ) {}
 
@@ -816,7 +816,7 @@ export class MemoryService {
   }
 
   private async insertChunk(
-    client: PoolClient,
+    client: IPostgresClient,
     input: {
       memoryId: string;
       orgId: string;
@@ -861,3 +861,4 @@ export class MemoryService {
     );
   }
 }
+

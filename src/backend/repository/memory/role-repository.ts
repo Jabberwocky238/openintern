@@ -3,10 +3,14 @@ import { NotFoundError } from '../../../utils/errors.js';
 import { generateRoleId } from '../../../utils/ids.js';
 import type { IRoleRepository } from '../interfaces/role-repository.js';
 import { clone, nowIso } from './helpers.js';
-import { defaultMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
+import { resolveMemoryRepositoryStore, type MemoryRepositoryStore } from './store.js';
 
 export class RoleRepository implements IRoleRepository {
-  constructor(private readonly store: MemoryRepositoryStore = defaultMemoryRepositoryStore) {}
+  private readonly store: MemoryRepositoryStore;
+
+  constructor(storeOrPool?: unknown) {
+    this.store = resolveMemoryRepositoryStore(storeOrPool);
+  }
 
   async create(input: CreateRole): Promise<Role> {
     const now = nowIso();
@@ -86,3 +90,4 @@ export class RoleRepository implements IRoleRepository {
     return { group_count: groups.length, groups };
   }
 }
+

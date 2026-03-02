@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { IPostgresPool } from '../interfaces/postgres-client.js';
 import type { IPluginRepository } from '../interfaces/plugin-repository.js';
 
 // ─── Row types ───────────────────────────────────────────
@@ -43,7 +43,7 @@ export interface PluginKvRow {
 // ─── Repository ──────────────────────────────────────────
 
 export class PluginRepository implements IPluginRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: IPostgresPool) {}
 
   // ── plugins CRUD ─────────────────────────────────────
 
@@ -200,3 +200,5 @@ export class PluginRepository implements IPluginRepository {
     );
   }
 }
+
+

@@ -115,3 +115,4 @@ describe('executeSingleRun', () => {
     expect(writtenEvents.some((event) => event.type === 'run.completed')).toBe(true);
   });
 });
+

@@ -1,5 +1,5 @@
-import type { RunRepository } from '@openintern/repository/postgres';
-import type { GroupRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
+import type { IGroupRepository } from '@openintern/repository';
 import type { DelegatedPermissions, RunRecord } from './models.js';
 import type { ScopeContext } from './scope.js';
 import { generateRunId } from '../../utils/ids.js';
@@ -7,8 +7,8 @@ import { ToolError, NotFoundError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
 
 export interface EscalationServiceConfig {
-  runRepository: RunRepository;
-  groupRepository: GroupRepository;
+  runRepository: IRunRepository;
+  groupRepository: IGroupRepository;
   /** Default timeout for waiting on child run completion (ms) */
   timeoutMs?: number;
   /** Polling interval for checking child run status (ms) */
@@ -37,8 +37,8 @@ const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
 const DEFAULT_POLL_INTERVAL_MS = 1000; // 1 second
 
 export class EscalationService {
-  private readonly runRepository: RunRepository;
-  private readonly groupRepository: GroupRepository;
+  private readonly runRepository: IRunRepository;
+  private readonly groupRepository: IGroupRepository;
   private readonly timeoutMs: number;
   private readonly pollIntervalMs: number;
 
@@ -227,3 +227,8 @@ export class EscalationService {
     };
   }
 }
+
+
+
+
+

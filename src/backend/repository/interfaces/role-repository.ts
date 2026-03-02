@@ -13,3 +13,4 @@ export interface IRoleRepository {
     groups: Array<{ id: string; name: string }>;
   }>;
 }
+

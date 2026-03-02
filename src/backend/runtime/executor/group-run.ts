@@ -50,7 +50,7 @@ Instructions:
 - Use handoff_to(role_id, goal) for single tasks
 - Use dispatch_subtasks([...]) for parallel work
 - When results return, synthesize a final answer
-- Do NOT do the work yourself â€” delegate.`;
+- Do NOT do the work yourself â€?delegate.`;
 
   const promptComposer = new PromptComposer({
     ...(modelConfig.provider !== 'mock' && { provider: modelConfig.provider }),
@@ -97,3 +97,4 @@ Instructions:
   );
   return status ?? (signal.aborted ? 'cancelled' : 'completed');
 }
+

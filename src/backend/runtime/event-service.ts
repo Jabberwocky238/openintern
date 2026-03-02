@@ -1,6 +1,6 @@
 import type { Event } from '../../types/events.js';
 import type { ScopeContext } from './scope.js';
-import { RunRepository } from '@openintern/repository/postgres';
+import type { IRunRepository } from '@openintern/repository';
 
 export interface EventPage {
   events: Event[];
@@ -12,7 +12,7 @@ export interface EventListOptions {
 }
 
 export class EventService {
-  constructor(private readonly runs: RunRepository) {}
+  constructor(private readonly runs: IRunRepository) {}
 
   async write(event: Event): Promise<number> {
     return this.runs.appendEvent(event);
@@ -37,3 +37,8 @@ export class EventService {
     };
   }
 }
+
+
+
+
+

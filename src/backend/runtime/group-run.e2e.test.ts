@@ -338,3 +338,4 @@ describe('Group run e2e flow (dispatcher -> workers -> summary)', () => {
     expect(secondPass.result.output).toContain('## Summary');
   });
 });
+

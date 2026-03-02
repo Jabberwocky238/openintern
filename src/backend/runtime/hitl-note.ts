@@ -11,3 +11,4 @@ export function hasHumanModifiedArgs(
 export function buildHumanOverrideNote(effectiveArgs: Record<string, unknown>): string {
   return `[SYSTEM NOTE: The human approver rejected your original arguments and modified them to: ${JSON.stringify(effectiveArgs)}. The following result is based on the modified arguments.]`;
 }
+

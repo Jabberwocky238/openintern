@@ -6,7 +6,7 @@ export type RunMode = 'single' | 'group' | 'plan_execute';
 
 /**
  * Permissions delegated from a parent PA run to a child group run.
- * Used to enforce permission intersection: Group Agent permissions = PA permissions âˆ© Role permissions.
+ * Used to enforce permission intersection: Group Agent permissions = PA permissions âˆ?Role permissions.
  */
 export interface DelegatedPermissions {
   allowed_tools?: string[];
@@ -99,3 +99,4 @@ export interface PlanTaskRecord {
   createdAt: string;
   updatedAt: string;
 }
+

@@ -13,10 +13,10 @@ import { Router, type Request, type Response } from 'express';
 import { CreateRoleSchema } from '../../types/orchestrator.js';
 import { AgentError, NotFoundError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
-import { RoleRepository } from '@openintern/repository/postgres';
+import type { IRoleRepository } from '@openintern/repository';
 
 export interface RolesRouterConfig {
-  roleRepository: RoleRepository;
+  roleRepository: IRoleRepository;
 }
 
 export function createRolesRouter(config: RolesRouterConfig): Router {
@@ -174,3 +174,8 @@ function handleError(res: Response, err: unknown): void {
     error: { code: 'INTERNAL_ERROR', message },
   });
 }
+
+
+
+
+

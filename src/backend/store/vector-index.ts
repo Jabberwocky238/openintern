@@ -143,3 +143,4 @@ export class VectorIndex {
     return results.slice(0, topK);
   }
 }
+

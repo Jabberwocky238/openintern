@@ -6,7 +6,7 @@ import type { RuntimeExecutorConfig } from '../executor.js';
 import type { PlanRecord, PlanTaskRecord } from '../models.js';
 import { generatePlanOutput } from '../planner/planner-client.js';
 import { PlanValidationError, validatePlannerOutput } from '../planner/plan-validator.js';
-import type { PlanRepository } from '@openintern/repository/postgres';
+import type { IPlanRepository } from '@openintern/repository';
 
 type Scope = { orgId: string; userId: string; projectId: string | null };
 type RunTerminalStatus = 'completed' | 'failed' | 'cancelled' | 'suspended';
@@ -23,7 +23,7 @@ interface PlannerRoleInput {
 }
 
 interface PlanRuntimeDeps {
-  planRepository: PlanRepository;
+  planRepository: IPlanRepository;
   runQueue: NonNullable<RuntimeExecutorConfig['runQueue']>;
 }
 
@@ -130,7 +130,7 @@ async function resolvePlannerRoles(
 async function failRun(
   config: RuntimeExecutorConfig,
   run: QueuedRun,
-  planRepository: PlanRepository,
+  planRepository: IPlanRepository,
   emit: EmitEventFn,
   code: string,
   message: string
@@ -199,7 +199,7 @@ async function ensurePlan(
 async function completeRun(
   config: RuntimeExecutorConfig,
   run: QueuedRun,
-  planRepository: PlanRepository,
+  planRepository: IPlanRepository,
   tasks: PlanTaskRecord[],
   emit: EmitEventFn
 ): Promise<RunTerminalStatus> {
@@ -371,7 +371,7 @@ export async function executePlanRun(
   const taskState = summarizeTaskState(tasks);
   if (taskState.failedTask) {
     const reason = taskState.failedTask.error ?? `Task ${taskState.failedTask.taskId} failed`;
-    return failRun(config, run, deps.planRepository, emit, 'PLAN_TASK_FAILED', reason);
+    return failRun(config, run, deps.IPlanRepository, emit, 'PLAN_TASK_FAILED', reason);
   }
 
   if (taskState.completedCount === tasks.length) {
@@ -386,7 +386,7 @@ export async function executePlanRun(
     return failRun(
       config,
       run,
-      deps.planRepository,
+      deps.IPlanRepository,
       emit,
       'PLAN_STALLED',
       'No ready tasks and no running tasks remain'
@@ -402,3 +402,8 @@ export async function executePlanRun(
   const reason = `Dispatched ${dispatch.dispatchedCount} task(s) in layer ${dispatch.layerIndex}`;
   return suspendRun(config, run, emit, reason, `plan_layer_${dispatch.layerIndex}`);
 }
+
+
+
+
+

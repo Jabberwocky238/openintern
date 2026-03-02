@@ -9,11 +9,11 @@ import {
 import { AgentError, ValidationError } from '../../utils/errors.js';
 import { logger } from '../../utils/logger.js';
 import { resolveRequestScope } from '../runtime/request-scope.js';
-import { FeishuRepository } from '@openintern/repository/postgres';
+import type { IFeishuRepository } from '@openintern/repository';
 import { FeishuSyncService } from '../runtime/integrations/feishu/sync-service.js';
 
 export interface FeishuConnectorsRouterConfig {
-  repository: FeishuRepository;
+  repository: IFeishuRepository;
   syncService: FeishuSyncService;
 }
 
@@ -212,3 +212,8 @@ export function createFeishuConnectorsRouter(config: FeishuConnectorsRouterConfi
 
   return router;
 }
+
+
+
+
+

@@ -208,3 +208,4 @@ function createFileExistsTool(workDir: string, pathGuard: PathGuard): Tool {
     },
   };
 }
+

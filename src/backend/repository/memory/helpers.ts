@@ -29,3 +29,4 @@ export function durationMs(startedAt: string | null, endedAt: string | null): nu
   }
   return new Date(endedAt).getTime() - new Date(startedAt).getTime();
 }
+

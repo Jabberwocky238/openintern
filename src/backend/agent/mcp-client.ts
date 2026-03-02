@@ -289,3 +289,4 @@ export class MCPClient extends EventEmitter {
     return this.process !== null && this.initialized;
   }
 }
+

@@ -48,3 +48,4 @@ export function createFeishuImRouter(config: FeishuImRouterConfig): Router {
 
   return router;
 }
+

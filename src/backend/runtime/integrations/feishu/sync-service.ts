@@ -10,7 +10,7 @@ import {
 import { AgentError } from '../../../../utils/errors.js';
 import { FeishuClient } from './client.js';
 import { normalizeBitableTableToChunks, normalizeDocxToChunks } from './normalizer.js';
-import { FeishuRepository } from '@openintern/repository/postgres';
+import type { IFeishuRepository } from '@openintern/repository';
 import { MemoryService } from '../../memory-service.js';
 
 interface SyncSourceDocx {
@@ -143,7 +143,7 @@ export class FeishuSyncService {
   private readonly runningConnectorIds = new Set<string>();
 
   constructor(
-    private readonly repository: FeishuRepository,
+    private readonly repository: IFeishuRepository,
     private readonly memoryService: MemoryService,
     private readonly client: FeishuClient | null,
     config: FeishuSyncServiceConfig
@@ -436,7 +436,7 @@ export class FeishuSyncService {
     };
 
     for (const token of connector.config.file_tokens) {
-      // 优先尝试 Drive 探测类型，若权限不足/接口不可用则按 docx token 兜底。
+      // 优先尝试 Drive 探测类型，若权限不足/接口不可用则�?docx token 兜底�?
       try {
         const file = await client.getDriveFile(token);
         if (file) {
@@ -486,7 +486,7 @@ export class FeishuSyncService {
     }
 
     for (const wikiToken of connector.config.wiki_node_tokens) {
-      // 当前先按 docx token 直读，避免强依赖 wiki:node scope。
+      // 当前先按 docx token 直读，避免强依赖 wiki:node scope�?
       push({
         kind: 'docx',
         file_token: wikiToken,
@@ -729,3 +729,8 @@ export class FeishuSyncService {
     return this.client;
   }
 }
+
+
+
+
+

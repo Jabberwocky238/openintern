@@ -120,3 +120,4 @@ describeIfFeishuE2E('Feishu connectors e2e (real API)', () => {
     expect(jobsBody.jobs[0]?.status).toBe('completed');
   }, 120000);
 });
+

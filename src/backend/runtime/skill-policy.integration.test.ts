@@ -213,7 +213,7 @@ interface MockEventService {
   list: Mock;
 }
 
-describe('ToolPolicy → SkillRegistry → RuntimeToolRouter integration', () => {
+describe('ToolPolicy �?SkillRegistry �?RuntimeToolRouter integration', () => {
   let workDir: string;
   let memoryService: MockMemoryService;
   let eventService: MockEventService;
@@ -310,7 +310,7 @@ describe('ToolPolicy → SkillRegistry → RuntimeToolRouter integration', () =>
     expect(denied.blocked).toBe(true);
     expect(denied.error).toContain('explicitly denied');
 
-    // same skill, different tool — not denied
+    // same skill, different tool �?not denied
     await fs.promises.writeFile(path.join(workDir, 'hello.txt'), 'world');
     const ok = await router.callTool('read_file', {
       path: 'hello.txt',
@@ -356,13 +356,13 @@ describe('ToolPolicy → SkillRegistry → RuntimeToolRouter integration', () =>
 
     const ctx = ToolPolicy.contextFromRole(role, 'agent_critic_1');
 
-    // memory_search is in whitelist → allowed
+    // memory_search is in whitelist �?allowed
     const searchResult = await router.callTool('memory_search', {
       query: 'test',
     }, ctx);
     expect(searchResult.success).toBe(true);
 
-    // memory_write is NOT in whitelist → blocked
+    // memory_write is NOT in whitelist �?blocked
     const writeResult = await router.callTool('memory_write', {
       type: 'episodic',
       text: 'test',
@@ -410,3 +410,4 @@ describe('ToolPolicy → SkillRegistry → RuntimeToolRouter integration', () =>
     expect(writerSearch.blocked).toBe(true);
   });
 });
+

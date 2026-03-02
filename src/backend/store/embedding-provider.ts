@@ -175,3 +175,4 @@ export function createEmbeddingProvider(
 
   return new HashEmbeddingProvider(config.dimension);
 }
+

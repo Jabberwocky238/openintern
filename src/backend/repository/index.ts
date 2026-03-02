@@ -1,4 +1,10 @@
 export type { IRunRepository, RunMessageRecord } from './interfaces/run-repository.js';
+export type {
+  IPostgresClient,
+  IPostgresPool,
+  IPostgresQueryable,
+  PostgresQueryResult,
+} from './interfaces/postgres-client.js';
 export type { IRoleRepository } from './interfaces/role-repository.js';
 export type {
   IGroupRepository,
@@ -32,5 +38,50 @@ export type {
   UpsertFeishuSourceStateInput,
 } from './interfaces/feishu-repository.js';
 
-export * as productionRepository from './postgres/index.js';
-export * as memoryRepository from './memory/index.js';
+import * as memoryRepository from './memory/index.js';
+import * as postgresRepository from './postgres/index.js';
+
+type RepositoryDevType = 'memory' | 'postgres';
+type RepositoryModule = {
+  RunRepository: new (...args: any[]) => import('./interfaces/run-repository.js').IRunRepository;
+  RoleRepository: new (...args: any[]) => import('./interfaces/role-repository.js').IRoleRepository;
+  GroupRepository: new (...args: any[]) => import('./interfaces/group-repository.js').IGroupRepository;
+  PlanRepository: new (...args: any[]) => import('./interfaces/plan-repository.js').IPlanRepository;
+  SkillRepository: new (...args: any[]) => import('./interfaces/skill-repository.js').ISkillRepository;
+  PluginRepository: new (...args: any[]) => import('./interfaces/plugin-repository.js').IPluginRepository;
+  FeishuRepository: new (...args: any[]) => import('./interfaces/feishu-repository.js').IFeishuRepository;
+};
+
+const repositoryDevType: RepositoryDevType =
+  process.env['OPENINTERN_REPOSITORY_DEV_TYPE'] === 'postgres' ? 'postgres' : 'memory';
+
+const selectedRepository: RepositoryModule =
+  repositoryDevType === 'postgres' ? postgresRepository : memoryRepository;
+
+export const OPENINTERN_REPOSITORY_DEV_TYPE = repositoryDevType;
+export default selectedRepository;
+
+export const {
+  RunRepository,
+  RoleRepository,
+  GroupRepository,
+  PlanRepository,
+  SkillRepository,
+  PluginRepository,
+  FeishuRepository,
+} = selectedRepository;
+
+export type RunRepository = import('./interfaces/run-repository.js').IRunRepository;
+export type RoleRepository = import('./interfaces/role-repository.js').IRoleRepository;
+export type GroupRepository = import('./interfaces/group-repository.js').IGroupRepository;
+export type GroupRoleMember = import('./interfaces/group-repository.js').GroupRoleMemberView;
+export type GroupWithRoles = import('./interfaces/group-repository.js').GroupWithRolesView;
+export type PlanRepository = import('./interfaces/plan-repository.js').IPlanRepository;
+export type SkillRepository = import('./interfaces/skill-repository.js').ISkillRepository;
+export type PluginRepository = import('./interfaces/plugin-repository.js').IPluginRepository;
+export type PluginRow = import('./interfaces/plugin-repository.js').PluginRowView;
+export type PluginJobRow = import('./interfaces/plugin-repository.js').PluginJobRowView;
+export type PluginKvRow = import('./interfaces/plugin-repository.js').PluginKvRowView;
+export type FeishuRepository = import('./interfaces/feishu-repository.js').IFeishuRepository;
+export type FeishuSourceState = import('./interfaces/feishu-repository.js').FeishuSourceStateView;
+

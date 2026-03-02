@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { KnowledgeDepositor } from './knowledge-depositor.js';
-import type { RunRepository } from '@openintern/repository/postgres';
+import type { RunRepository } from '@openintern/repository';
 import type { MemoryService } from './memory-service.js';
 import type { RunRecord } from './models.js';
 
@@ -170,3 +170,5 @@ describe('KnowledgeDepositor', () => {
     });
   });
 });
+
+
