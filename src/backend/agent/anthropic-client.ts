@@ -45,26 +45,13 @@ export class AnthropicClient implements ILLMClient {
 
   async chat(messages: Message[], tools?: ToolDefinition[], options?: LLMCallOptions): Promise<LLMResponse> {
     const body = this.buildRequestBody(messages, tools);
-
-    const response = await fetch(`${this.baseUrl}/v1/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify(body),
-      ...(options?.signal ? { signal: options.signal } : {}),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => 'Unknown error');
-      throw new LLMError(
-        `Anthropic API error: ${response.status} ${errorBody}`,
-        'anthropic',
-        response.status
-      );
-    }
+    const response = await this.postWithRepair(
+      body,
+      messages,
+      tools,
+      options,
+      false
+    );
 
     const data = (await response.json()) as Record<string, unknown>;
     return this.parseResponse(data);
@@ -72,10 +59,14 @@ export class AnthropicClient implements ILLMClient {
 
   private buildRequestBody(
     messages: Message[],
-    tools?: ToolDefinition[]
+    tools?: ToolDefinition[],
+    options?: { stripToolHistory?: boolean }
   ): Record<string, unknown> {
-    const sanitizedMessages = sanitizeMessagesForLLM(messages);
-    const { systemPrompt, conversationMessages } = this.extractSystemMessages(sanitizedMessages);
+    const normalizedMessages = this.normalizeMessagesForAnthropic(
+      messages,
+      options?.stripToolHistory === true
+    );
+    const { systemPrompt, conversationMessages } = this.extractSystemMessages(normalizedMessages);
     const mappedMessages = this.mapMessages(conversationMessages);
 
     const body: Record<string, unknown> = {
@@ -94,6 +85,99 @@ export class AnthropicClient implements ILLMClient {
     }
 
     return body;
+  }
+
+  private normalizeMessagesForAnthropic(messages: Message[], stripToolHistory: boolean): Message[] {
+    const sanitizedMessages = sanitizeMessagesForLLM(messages);
+    if (!stripToolHistory) {
+      return sanitizedMessages;
+    }
+
+    const stripped: Message[] = [];
+    for (const msg of sanitizedMessages) {
+      if (msg.role === 'tool') {
+        continue;
+      }
+      if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
+        const text = getMessageText(msg.content).trim();
+        if (text.length === 0 || text === '(tool call)') {
+          continue;
+        }
+        stripped.push({
+          ...msg,
+          content: text,
+          toolCalls: undefined,
+        });
+        continue;
+      }
+      stripped.push(msg);
+    }
+    return stripped;
+  }
+
+  private async postMessages(
+    body: Record<string, unknown>,
+    options?: LLMCallOptions
+  ): Promise<Response> {
+    return fetch(`${this.baseUrl}/v1/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify(body),
+      ...(options?.signal ? { signal: options.signal } : {}),
+    });
+  }
+
+  private isRecoverableToolPairingError(errorBody: string): boolean {
+    const body = errorBody.toLowerCase();
+    const hasToolContext = body.includes('tool');
+    const hasPairingSignal = body.includes('tool_use_id')
+      || body.includes('tool result')
+      || body.includes('tool id')
+      || body.includes('not found');
+    return hasToolContext && hasPairingSignal;
+  }
+
+  private async postWithRepair(
+    body: Record<string, unknown>,
+    originalMessages: Message[],
+    tools: ToolDefinition[] | undefined,
+    options: LLMCallOptions | undefined,
+    stream: boolean
+  ): Promise<Response> {
+    const firstResponse = await this.postMessages(body, options);
+    if (firstResponse.ok) {
+      return firstResponse;
+    }
+
+    const firstErrorBody = await firstResponse.text().catch(() => 'Unknown error');
+    if (firstResponse.status !== 400 || !this.isRecoverableToolPairingError(firstErrorBody)) {
+      throw new LLMError(
+        `Anthropic API error: ${firstResponse.status} ${firstErrorBody}`,
+        'anthropic',
+        firstResponse.status
+      );
+    }
+
+    const repairedBody = this.buildRequestBody(originalMessages, tools, { stripToolHistory: true });
+    if (stream) {
+      repairedBody['stream'] = true;
+    }
+
+    const repairedResponse = await this.postMessages(repairedBody, options);
+    if (!repairedResponse.ok) {
+      const repairedErrorBody = await repairedResponse.text().catch(() => 'Unknown error');
+      throw new LLMError(
+        `Anthropic API error after repair retry: ${repairedResponse.status} ${repairedErrorBody}`,
+        'anthropic',
+        repairedResponse.status
+      );
+    }
+
+    return repairedResponse;
   }
 
   private extractSystemMessages(messages: Message[]): {
@@ -276,25 +360,13 @@ export class AnthropicClient implements ILLMClient {
     const body = this.buildRequestBody(messages, tools);
     body['stream'] = true;
 
-    const response = await fetch(`${this.baseUrl}/v1/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify(body),
-      ...(options?.signal ? { signal: options.signal } : {}),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => 'Unknown error');
-      throw new LLMError(
-        `Anthropic API error: ${response.status} ${errorBody}`,
-        'anthropic',
-        response.status,
-      );
-    }
+    const response = await this.postWithRepair(
+      body,
+      messages,
+      tools,
+      options,
+      true
+    );
 
     if (!response.body) {
       throw new LLMError('Anthropic streaming response has no body', 'anthropic');

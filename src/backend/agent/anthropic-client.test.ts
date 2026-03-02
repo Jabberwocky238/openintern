@@ -22,9 +22,25 @@ function mockFetchResponse(
 }
 
 function getFetchBody(): Record<string, unknown> {
+  return getFetchBodyAt(0);
+}
+
+function getFetchBodyAt(index: number): Record<string, unknown> {
   const mockFn = globalThis.fetch as ReturnType<typeof vi.fn>;
   const calls = mockFn.mock.calls as Array<[string, { body: string }]>;
-  return JSON.parse(calls[0]![1].body) as Record<string, unknown>;
+  return JSON.parse(calls[index]![1].body) as Record<string, unknown>;
+}
+
+function createSSEStream(chunks: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      controller.close();
+    },
+  });
 }
 
 describe('AnthropicClient', () => {
@@ -273,12 +289,119 @@ describe('AnthropicClient', () => {
       ).rejects.toThrow(LLMError);
     });
 
+    it('should retry once with stripped tool history on tool id pairing 400', async () => {
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          text: () => Promise.resolve(
+            JSON.stringify({
+              type: 'error',
+              error: {
+                type: 'invalid_request_error',
+                message: "invalid params, tool result's tool id(call_function_abc_2) not found (2013)",
+              },
+            })
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            content: [{ type: 'text', text: 'Recovered response' }],
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+        }) as typeof globalThis.fetch;
+
+      const messages: Message[] = [
+        { role: 'user', content: 'question' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [{ id: 'call_function_abc_2', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: '{"ok":true}', toolCallId: 'call_function_abc_2' },
+      ];
+
+      const result = await client.chat(messages);
+      expect(result.content).toBe('Recovered response');
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+
+      const secondBody = getFetchBodyAt(1);
+      const secondMessages = secondBody.messages as Array<Record<string, unknown>>;
+      const hasToolResult = secondMessages.some(
+        (msg) => Array.isArray(msg.content)
+          && (msg.content as Array<Record<string, unknown>>).some((block) => block.type === 'tool_result')
+      );
+      expect(hasToolResult).toBe(false);
+    });
+
     it('should handle empty content', async () => {
       globalThis.fetch = mockFetchResponse({ content: [] });
 
       await expect(
         client.chat([{ role: 'user', content: 'Hi' }])
       ).rejects.toThrow(LLMError);
+    });
+  });
+
+  describe('chatStream', () => {
+    let client: AnthropicClient;
+
+    beforeEach(() => {
+      client = new AnthropicClient({
+        provider: 'anthropic',
+        model: 'claude-3-sonnet',
+        apiKey: MOCK_API_KEY,
+        baseUrl: 'https://test.anthropic.com',
+      });
+    });
+
+    it('should retry stream request once with stripped tool history on tool id pairing 400', async () => {
+      const sseData = [
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Recovered stream"}}\n',
+        'data: {"type":"message_stop"}\n',
+      ];
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          text: () => Promise.resolve(
+            JSON.stringify({
+              type: 'error',
+              error: {
+                type: 'invalid_request_error',
+                message: "invalid params, tool result's tool id(call_function_abc_2) not found (2013)",
+              },
+            })
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          body: createSSEStream(sseData),
+        }) as typeof globalThis.fetch;
+
+      const messages: Message[] = [
+        { role: 'user', content: 'question' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [{ id: 'call_function_abc_2', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: '{"ok":true}', toolCallId: 'call_function_abc_2' },
+      ];
+
+      const deltas: string[] = [];
+      for await (const chunk of client.chatStream!(messages)) {
+        if (chunk.delta) {
+          deltas.push(chunk.delta);
+        }
+      }
+
+      expect(deltas.join('')).toContain('Recovered stream');
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     });
   });
 });
