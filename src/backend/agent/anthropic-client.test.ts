@@ -202,6 +202,45 @@ describe('AnthropicClient', () => {
       expect(msgs[2]!.content as unknown[]).toHaveLength(2);
     });
 
+    it('should assign unique tool_use ids for repeated raw tool call ids across turns', async () => {
+      const mockResponse = {
+        content: [{ type: 'text', text: 'Done' }],
+        usage: { input_tokens: 20, output_tokens: 10 },
+      };
+      globalThis.fetch = mockFetchResponse(mockResponse);
+
+      const messages: Message[] = [
+        { role: 'user', content: 'Do something' },
+        {
+          role: 'assistant',
+          content: 'first call',
+          toolCalls: [{ id: 'call_function_dup_2', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: 'result1', toolCallId: 'call_function_dup_2' },
+        {
+          role: 'assistant',
+          content: 'second call',
+          toolCalls: [{ id: 'call_function_dup_2', name: 'read_file', parameters: { path: 'b.md' } }],
+        },
+        { role: 'tool', content: 'result2', toolCallId: 'call_function_dup_2' },
+      ];
+      await client.chat(messages);
+
+      const body = getFetchBody();
+      const msgs = body.messages as Array<Record<string, unknown>>;
+
+      const firstAssistantBlocks = msgs[1]!.content as Array<Record<string, unknown>>;
+      const secondAssistantBlocks = msgs[3]!.content as Array<Record<string, unknown>>;
+      const firstToolUseId = firstAssistantBlocks.find((block) => block.type === 'tool_use')!.id as string;
+      const secondToolUseId = secondAssistantBlocks.find((block) => block.type === 'tool_use')!.id as string;
+      expect(firstToolUseId).not.toBe(secondToolUseId);
+
+      const firstToolResult = (msgs[2]!.content as Array<Record<string, unknown>>)[0]!;
+      const secondToolResult = (msgs[4]!.content as Array<Record<string, unknown>>)[0]!;
+      expect(firstToolResult.tool_use_id).toBe(firstToolUseId);
+      expect(secondToolResult.tool_use_id).toBe(secondToolUseId);
+    });
+
     it('should drop orphan tool messages without matching assistant tool_use', async () => {
       const mockResponse = {
         content: [{ type: 'text', text: 'Done' }],
@@ -336,6 +375,45 @@ describe('AnthropicClient', () => {
       expect(hasToolResult).toBe(false);
     });
 
+    it('should retry once on generic 400 when request contains tool history', async () => {
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          text: () => Promise.resolve(
+            JSON.stringify({
+              type: 'error',
+              error: {
+                type: 'invalid_request_error',
+                message: 'invalid params, malformed request payload',
+              },
+            })
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            content: [{ type: 'text', text: 'Recovered generic 400' }],
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+        }) as typeof globalThis.fetch;
+
+      const messages: Message[] = [
+        { role: 'user', content: 'question' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [{ id: 'call_function_abc_3', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: '{"ok":true}', toolCallId: 'call_function_abc_3' },
+      ];
+
+      const result = await client.chat(messages);
+      expect(result.content).toBe('Recovered generic 400');
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
+
     it('should handle empty content', async () => {
       globalThis.fetch = mockFetchResponse({ content: [] });
 
@@ -401,6 +479,53 @@ describe('AnthropicClient', () => {
       }
 
       expect(deltas.join('')).toContain('Recovered stream');
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should retry stream request on generic 400 when request contains tool history', async () => {
+      const sseData = [
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Recovered generic stream"}}\n',
+        'data: {"type":"message_stop"}\n',
+      ];
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          text: () => Promise.resolve(
+            JSON.stringify({
+              type: 'error',
+              error: {
+                type: 'invalid_request_error',
+                message: 'invalid params, malformed request payload',
+              },
+            })
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          body: createSSEStream(sseData),
+        }) as typeof globalThis.fetch;
+
+      const messages: Message[] = [
+        { role: 'user', content: 'question' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [{ id: 'call_function_abc_3', name: 'read_file', parameters: { path: 'a.md' } }],
+        },
+        { role: 'tool', content: '{"ok":true}', toolCallId: 'call_function_abc_3' },
+      ];
+
+      const deltas: string[] = [];
+      for await (const chunk of client.chatStream!(messages)) {
+        if (chunk.delta) {
+          deltas.push(chunk.delta);
+        }
+      }
+
+      expect(deltas.join('')).toContain('Recovered generic stream');
       expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     });
   });

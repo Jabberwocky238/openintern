@@ -141,6 +141,15 @@ export class AnthropicClient implements ILLMClient {
     return hasToolContext && hasPairingSignal;
   }
 
+  private hasToolHistory(messages: Message[]): boolean {
+    return messages.some((msg) => {
+      if (msg.role === 'tool') {
+        return true;
+      }
+      return msg.role === 'assistant' && Array.isArray(msg.toolCalls) && msg.toolCalls.length > 0;
+    });
+  }
+
   private async postWithRepair(
     body: Record<string, unknown>,
     originalMessages: Message[],
@@ -154,7 +163,12 @@ export class AnthropicClient implements ILLMClient {
     }
 
     const firstErrorBody = await firstResponse.text().catch(() => 'Unknown error');
-    if (firstResponse.status !== 400 || !this.isRecoverableToolPairingError(firstErrorBody)) {
+    const shouldRetryWithToolHistoryStripped = firstResponse.status === 400
+      && (
+        this.isRecoverableToolPairingError(firstErrorBody)
+        || this.hasToolHistory(originalMessages)
+      );
+    if (!shouldRetryWithToolHistoryStripped) {
       throw new LLMError(
         `Anthropic API error: ${firstResponse.status} ${firstErrorBody}`,
         'anthropic',
@@ -203,11 +217,22 @@ export class AnthropicClient implements ILLMClient {
 
   private mapMessages(messages: Message[]): Array<Record<string, unknown>> {
     const result: Array<Record<string, unknown>> = [];
-    const toolUseIdMap = this.buildToolUseIdMap(messages);
+    const availableToolUseIdsByRaw = new Map<string, string[]>();
+    const usedToolUseIds = new Set<string>();
+    let generatedCounter = 0;
 
     for (const msg of messages) {
       if (msg.role === 'tool') {
-        const mappedToolUseId = msg.toolCallId ? toolUseIdMap.get(msg.toolCallId) : undefined;
+        let mappedToolUseId: string | undefined;
+        if (msg.toolCallId) {
+          const queue = availableToolUseIdsByRaw.get(msg.toolCallId);
+          if (queue && queue.length > 0) {
+            mappedToolUseId = queue.shift();
+            if (queue.length === 0) {
+              availableToolUseIdsByRaw.delete(msg.toolCallId);
+            }
+          }
+        }
         if (!mappedToolUseId) {
           continue;
         }
@@ -237,10 +262,17 @@ export class AnthropicClient implements ILLMClient {
 
         if (msg.toolCalls && msg.toolCalls.length > 0) {
           for (const tc of msg.toolCalls) {
-            const mappedId = toolUseIdMap.get(tc.id);
-            if (!mappedId) {
-              continue;
+            let mappedId = this.normalizeToolUseId(tc.id);
+            while (usedToolUseIds.has(mappedId)) {
+              generatedCounter += 1;
+              mappedId = `toolu_${generatedCounter}`;
             }
+            usedToolUseIds.add(mappedId);
+
+            const queue = availableToolUseIdsByRaw.get(tc.id) ?? [];
+            queue.push(mappedId);
+            availableToolUseIdsByRaw.set(tc.id, queue);
+
             contentBlocks.push({
               type: 'tool_use',
               id: mappedId,
@@ -296,35 +328,6 @@ export class AnthropicClient implements ILLMClient {
     }
 
     return result;
-  }
-
-  private buildToolUseIdMap(messages: Message[]): Map<string, string> {
-    const idMap = new Map<string, string>();
-    const usedAnthropicIds = new Set<string>();
-    let generatedCounter = 0;
-
-    for (const msg of messages) {
-      if (msg.role !== 'assistant' || !msg.toolCalls || msg.toolCalls.length === 0) {
-        continue;
-      }
-
-      for (const tc of msg.toolCalls) {
-        if (idMap.has(tc.id)) {
-          continue;
-        }
-
-        let candidate = this.normalizeToolUseId(tc.id);
-        while (usedAnthropicIds.has(candidate)) {
-          generatedCounter += 1;
-          candidate = `toolu_${generatedCounter}`;
-        }
-
-        usedAnthropicIds.add(candidate);
-        idMap.set(tc.id, candidate);
-      }
-    }
-
-    return idMap;
   }
 
   private normalizeToolUseId(rawId: string): string {
