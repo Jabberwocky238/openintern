@@ -25,6 +25,7 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@openintern/repository": "file:./src/backend/repository",
     "@types/busboy": "^1.5.4",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",

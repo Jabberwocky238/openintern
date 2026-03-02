@@ -22,6 +22,8 @@ interface ManagedRouter {
   cleanup: () => Promise<void>;
 }
 
+const TEST_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 function buildFakeServerScript(config: FakeServerConfig): string {
   const listMode = config.listMode ?? 'valid';
   const callMode = config.callMode ?? 'text';
@@ -227,7 +229,7 @@ describe('RuntimeToolRouter MCP protocol behavior', () => {
       timeoutMs: 1500,
       mcp: {
         enabled: true,
-        pythonPath: 'python3',
+        pythonPath: TEST_PYTHON_PATH,
         serverModule: fake.moduleName,
         cwd: fake.cwd,
         timeoutMs: 1500,

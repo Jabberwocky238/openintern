@@ -49,12 +49,15 @@ export interface MCPClientConfig {
   timeout?: number;
 }
 
+const DEFAULT_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 const DEFAULT_CONFIG: Required<MCPClientConfig> = {
-  pythonPath: 'python3',
+  pythonPath: DEFAULT_PYTHON_PATH,
   serverModule: 'mcp_server.server',
   cwd: 'python',
   timeout: 30000,
 };
+const STOP_WAIT_TIMEOUT_MS = 2000;
 
 /**
  * MCP Client for communicating with Python MCP Server
@@ -268,7 +271,16 @@ export class MCPClient extends EventEmitter {
    * Stop the MCP server
    */
   async stop(): Promise<void> {
-    if (!this.process) return;
+    const activeProcess = this.process;
+    if (!activeProcess) return;
+
+    const waitForClose = new Promise<void>((resolve) => {
+      if (activeProcess.exitCode !== null) {
+        resolve();
+        return;
+      }
+      activeProcess.once('close', () => resolve());
+    });
 
     try {
       await this.request('shutdown');
@@ -276,7 +288,15 @@ export class MCPClient extends EventEmitter {
       // Ignore shutdown errors
     }
 
-    this.process.kill();
+    if (activeProcess.exitCode === null) {
+      activeProcess.kill();
+    }
+
+    await Promise.race([
+      waitForClose,
+      new Promise<void>((resolve) => setTimeout(resolve, STOP_WAIT_TIMEOUT_MS)),
+    ]);
+
     this.process = null;
     this.initialized = false;
     logger.info('MCP server stopped');

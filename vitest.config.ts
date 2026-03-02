@@ -12,9 +12,4 @@ export default defineConfig({
       exclude: ['src/**/*.test.ts'],
     },
   },
-  resolve: {
-    alias: {
-      '@': './src',
-    },
-  },
 });

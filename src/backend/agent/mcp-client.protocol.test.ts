@@ -21,6 +21,8 @@ interface ManagedClient {
   cleanup: () => Promise<void>;
 }
 
+const TEST_PYTHON_PATH = process.platform === 'win32' ? 'python' : 'python3';
+
 function buildFakeServerScript(config: FakeServerConfig): string {
   const strictHandshake = config.strictHandshake ? 'True' : 'False';
   const listMode = config.listMode ?? 'valid';
@@ -188,7 +190,7 @@ describe('MCPClient protocol (fake server)', () => {
   async function createClient(config: FakeServerConfig = {}): Promise<MCPClient> {
     const fake = await createFakeServer(config);
     const client = new MCPClient({
-      pythonPath: 'python3',
+      pythonPath: TEST_PYTHON_PATH,
       serverModule: fake.moduleName,
       cwd: fake.cwd,
       timeout: 1500,

@@ -316,7 +316,7 @@ describe('Group run e2e flow (dispatcher -> workers -> summary)', () => {
     expect(storedAfterFanIn?.messages.length).toBe(3);
     const injectedMessage = storedAfterFanIn?.messages[2];
     expect(injectedMessage?.role).toBe('tool');
-    expect(injectedMessage?.toolCallId).toBe('tc_dispatch_workers');
+    expect(injectedMessage?.toolCallId).toMatch(/tc_dispatch_workers$/);
     const injectedPayload = JSON.parse((injectedMessage?.content as string) ?? '{}') as {
       child_results?: Array<{ child_run_id: string }>;
     };

@@ -39,6 +39,9 @@ importers:
         specifier: ^3.22.0
         version: 3.25.76
     devDependencies:
+      '@openintern/repository':
+        specifier: file:./src/backend/repository
+        version: file:src/backend/repository
       '@types/busboy':
         specifier: ^1.5.4
         version: 1.5.4
@@ -432,6 +435,9 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@openintern/repository@file:src/backend/repository':
+    resolution: {directory: src/backend/repository, type: directory}
 
   '@paralleldrive/cuid2@2.3.1':
     resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
@@ -2028,6 +2034,12 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
+
+  '@openintern/repository@file:src/backend/repository':
+    dependencies:
+      pg: 8.18.0
+    transitivePeerDependencies:
+      - pg-native
 
   '@paralleldrive/cuid2@2.3.1':
     dependencies:
